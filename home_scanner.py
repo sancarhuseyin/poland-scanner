@@ -1244,13 +1244,19 @@ def beep() -> None:
 
 
 def send_telegram(listings: list[Listing], total_count: int, config: dict[str, Any]) -> None:
+    message = build_notification_message(listings, total_count)
+    try:
+        send_telegram_message(message, config)
+    except RuntimeError as exc:
+        print(f"Telegram notification skipped: {exc}")
+
+
+def send_telegram_message(message: str, config: dict[str, Any]) -> None:
     token = str(config.get("bot_token") or os.getenv("TELEGRAM_BOT_TOKEN") or "").strip()
     chat_id = str(config.get("chat_id") or os.getenv("TELEGRAM_CHAT_ID") or "").strip()
     if not token or not chat_id:
-        print("Telegram notification skipped: bot_token/chat_id is missing.")
-        return
+        raise RuntimeError("Telegram bot_token/chat_id is missing.")
 
-    message = build_notification_message(listings, total_count)
     url = f"https://api.telegram.org/bot{token}/sendMessage"
     response = requests.post(
         url,
@@ -1258,6 +1264,56 @@ def send_telegram(listings: list[Listing], total_count: int, config: dict[str, A
         timeout=20,
     )
     response.raise_for_status()
+
+
+def send_telegram_scan_payloads(
+    listings: list[dict[str, Any]],
+    total_count: int,
+    config: dict[str, Any],
+) -> int:
+    notification_config = config.get("notifications") or {}
+    telegram_config = notification_config.get("telegram") or {}
+    max_items = int(notification_config.get("max_items_per_scan") or 10)
+    selected = listings[:max_items]
+    message = build_scan_payload_message(selected, total_count, len(listings))
+    send_telegram_message(message, telegram_config)
+    return len(selected)
+
+
+def build_scan_payload_message(
+    listings: list[dict[str, Any]],
+    total_count: int,
+    displayed_count: int,
+) -> str:
+    lines = [f"home-scanner: {displayed_count} displayed listing(s), {total_count} total match(es)"]
+    for index, listing in enumerate(listings, start=1):
+        lines.append("")
+        lines.append(format_payload_listing_line(index, listing))
+        url = str(listing.get("url") or "").strip()
+        if url:
+            lines.append(url)
+    if len(listings) < displayed_count:
+        lines.append("")
+        lines.append(f"...and {displayed_count - len(listings)} more displayed listing(s).")
+    return "\n".join(lines)
+
+
+def format_payload_listing_line(index: int, listing: dict[str, Any]) -> str:
+    title = str(listing.get("title_en") or listing.get("title") or "").strip()
+    bits = [
+        f"{index:02d}. {title}",
+        str(listing.get("price_label") or "").strip(),
+        f"{listing.get('area_m2'):g} m2" if isinstance(listing.get("area_m2"), int | float) else "",
+        str(listing.get("rooms_label") or "").strip(),
+        str(listing.get("location") or "").strip(),
+    ]
+    distance = listing.get("distance_km")
+    if isinstance(distance, int | float):
+        bits.append(f"{distance:g} km")
+    total = listing.get("total_known_cost")
+    if isinstance(total, int | float):
+        bits.append(f"known total {total:g} PLN")
+    return " | ".join(bit for bit in bits if bit)
 
 
 def send_ntfy(listings: list[Listing], total_count: int, config: dict[str, Any]) -> None:
@@ -1430,6 +1486,19 @@ def make_web_handler(config_path: Path, state_path: Path) -> type[BaseHTTPReques
                     config = ui_payload_to_config(payload, base_config)
                     save_json_file(config_path, config)
                     self.write_json({"ok": True, "config": config_to_ui_payload(config)})
+                    return
+
+                if self.path == "/api/telegram/send":
+                    listings = payload.get("listings") or []
+                    if not isinstance(listings, list):
+                        raise ValueError("listings must be an array.")
+                    total_count = int(coerce_number(payload.get("total_matches"), len(listings)) or len(listings))
+                    sent_count = send_telegram_scan_payloads(
+                        [item for item in listings if isinstance(item, dict)],
+                        total_count,
+                        base_config,
+                    )
+                    self.write_json({"ok": True, "sent_count": sent_count})
                     return
 
                 if self.path == "/api/seen/reset":
@@ -2200,7 +2269,8 @@ INDEX_HTML = r"""<!doctype html>
 
         <div class="actions">
           <button class="accent" type="button" id="scan">Scan</button>
-          <div class="row"><button type="button" id="watch">Start watching</button><button type="button" id="save">Save filters</button></div>
+          <div class="row"><button type="button" id="watch">Start watching</button><button type="button" id="sendTelegram">Send scan to Telegram</button></div>
+          <button type="button" id="save">Save filters</button>
           <button class="warning" type="button" id="resetSeen">Reset memory for this filter</button>
         </div>
       </form>
@@ -2405,6 +2475,24 @@ INDEX_HTML = r"""<!doctype html>
       catch (error) { $("status").innerHTML = `<span class="error">${escapeHtml(error.message)}</span>`; }
       finally { setBusy(false); }
     }
+    async function sendCurrentScanToTelegram() {
+      if (!lastData || !Array.isArray(lastListings)) {
+        $("status").textContent = "Run a scan before sending results to Telegram.";
+        return;
+      }
+      setBusy(true); $("status").textContent = "Sending scan results to Telegram...";
+      try {
+        const data = await api("/api/telegram/send", {
+          listings: lastListings,
+          total_matches: lastData.total_matches ?? lastListings.length
+        });
+        $("status").textContent = `Sent ${data.sent_count} listing(s) to Telegram.`;
+      } catch (error) {
+        $("status").innerHTML = `<span class="error">${escapeHtml(error.message)}</span>`;
+      } finally {
+        setBusy(false);
+      }
+    }
     function render(data) {
       lastData = data;
       lastListings = (data.listings || []).map((item, index) => ({...item, display_index: index + 1}));
@@ -2587,6 +2675,7 @@ INDEX_HTML = r"""<!doctype html>
     $("save").addEventListener("click", saveConfig);
     $("resetSeen").addEventListener("click", resetSeen);
     $("watch").addEventListener("click", toggleWatch);
+    $("sendTelegram").addEventListener("click", sendCurrentScanToTelegram);
     $("geocode").addEventListener("click", geocodeAddress);
     $("showAll").addEventListener("click", () => { $("hide_seen").checked = false; scan(); });
     $("showNew").addEventListener("click", () => { $("hide_seen").checked = true; scan(); });

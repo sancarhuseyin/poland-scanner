@@ -204,3 +204,27 @@ def test_ui_payload_to_config_normalizes_car_fields():
     assert config["olx_filters"]["year_from"] == 2015.0
     assert config["olx_filters"]["mileage_to"] == 150000.0
     assert config["local_filters"]["category"] == "car"
+
+
+def test_build_scan_payload_message_formats_displayed_results():
+    message = hs.build_scan_payload_message(
+        [
+            {
+                "title": "Flat near park",
+                "price_label": "2 000 PLN",
+                "area_m2": 38,
+                "rooms_label": "2 rooms",
+                "location": "Krakow, Krowodrza",
+                "distance_km": 1.4,
+                "total_known_cost": 2400,
+                "url": "https://www.olx.pl/d/oferta/test.html",
+            }
+        ],
+        total_count=4,
+        displayed_count=3,
+    )
+
+    assert "home-scanner: 3 displayed listing(s), 4 total match(es)" in message
+    assert "01. Flat near park | 2 000 PLN | 38 m2 | 2 rooms | Krakow, Krowodrza | 1.4 km | known total 2400 PLN" in message
+    assert "https://www.olx.pl/d/oferta/test.html" in message
+    assert "...and 2 more displayed listing(s)." in message

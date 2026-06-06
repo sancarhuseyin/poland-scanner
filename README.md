@@ -82,6 +82,8 @@ python home_scanner.py --config config.json watch
 
 For ntfy, set `notifications.ntfy.enabled` to `true` and provide a unique `topic`.
 
+In the web UI, `Send scan to Telegram` sends the currently displayed scan results to the Telegram chat configured in `config.json` or environment variables. This manual action does not require `notifications.telegram.enabled` to be `true`; it only needs a bot token and chat ID.
+
 ## Development
 
 Install development dependencies:
