@@ -1,0 +1,15 @@
+[project]
+name = "home-scanner"
+version = "0.1.0"
+description = "Local OLX.pl listing scanner with web UI, filters, map view, and notifications."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+dependencies = [
+  "requests>=2.32.0",
+]
+
+[tool.pytest.ini_options]
+addopts = "-q"
+pythonpath = ["."]
+testpaths = ["tests"]

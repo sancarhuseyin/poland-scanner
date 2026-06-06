@@ -1,0 +1,78 @@
+{
+  "search_url": "",
+  "scan_interval_minutes": 10,
+  "max_pages": 2,
+  "request_delay_seconds": 2,
+  "first_run_notify": false,
+  "seen_ttl_days": 60,
+  "ui": {
+    "category": "home",
+    "sort_mode": "known_total:asc"
+  },
+  "ui_defaults": {
+    "address": "Opolska 110"
+  },
+  "olx_filters": {
+    "category_path": "nieruchomosci/mieszkania/wynajem",
+    "city_slug": "krakow",
+    "query": "",
+    "sort": "filter_float_price:asc",
+    "owner_type": null,
+    "price_from": null,
+    "price_to": 2000,
+    "area_from": 25,
+    "area_to": null,
+    "year_from": null,
+    "year_to": null,
+    "mileage_from": null,
+    "mileage_to": null,
+    "rooms": [
+      "two"
+    ],
+    "furniture": [],
+    "district_id": null,
+    "distance_km": null,
+    "only_with_photo": true
+  },
+  "local_filters": {
+    "category": "home",
+    "min_price": null,
+    "max_price": 2000,
+    "min_area_m2": 25,
+    "max_area_m2": null,
+    "rooms": [
+      "two"
+    ],
+    "furniture": [],
+    "districts_any": [],
+    "keywords_any": [],
+    "keywords_all": [],
+    "exclude_keywords": [],
+    "require_photo": true,
+    "min_rent": null,
+    "max_rent": null,
+    "min_total_known_cost": null,
+    "max_total_known_cost": 2500,
+    "apply_total_limit": false,
+    "center_lat": 50.0879222,
+    "center_lon": 19.9530164,
+    "radius_km": 5,
+    "apply_radius_filter": false
+  },
+  "notifications": {
+    "console": true,
+    "beep": true,
+    "max_items_per_scan": 10,
+    "telegram": {
+      "enabled": false,
+      "bot_token": "",
+      "chat_id": ""
+    },
+    "ntfy": {
+      "enabled": false,
+      "server": "https://ntfy.sh",
+      "topic": ""
+    },
+    "command": []
+  }
+}
