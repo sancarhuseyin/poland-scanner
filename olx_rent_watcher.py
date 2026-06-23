@@ -1,4 +1,4 @@
-from home_scanner import main
+from poland_scanner import main
 
 
 if __name__ == "__main__":

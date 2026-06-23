@@ -1,7 +1,7 @@
 import datetime as dt
 from urllib.parse import parse_qs, urlparse
 
-import home_scanner as hs
+import poland_scanner as hs
 
 
 def make_listing(**overrides):
@@ -90,6 +90,187 @@ def test_build_search_url_car_filters_omit_home_specific_params():
     assert params["search[filter_float_milage:to]"] == ["150000"]
     assert "search[filter_float_m:from]" not in params
     assert not any(key.startswith("search[filter_enum_rooms]") for key in params)
+
+
+def test_build_search_url_car_detailed_filters():
+    config = {
+        "ui": {"category": "car"},
+        "olx_filters": {
+            "city_slug": "warszawa",
+            "enginesize_from": 1600,
+            "enginesize_to": 2000,
+            "enginepower_from": 120,
+            "enginepower_to": 200,
+            "petrol": ["petrol", "diesel"],
+            "transmission": ["manual"],
+            "car_body": ["sedan", "combi"],
+        },
+    }
+
+    url = hs.build_search_url(config)
+    parsed = urlparse(url)
+    params = parse_qs(parsed.query)
+
+    assert parsed.path == "/motoryzacja/samochody/warszawa/"
+    assert params["search[filter_float_enginesize:from]"] == ["1600"]
+    assert params["search[filter_float_enginesize:to]"] == ["2000"]
+    assert params["search[filter_float_enginepower:from]"] == ["120"]
+    assert params["search[filter_float_enginepower:to]"] == ["200"]
+    assert params["search[filter_enum_petrol][0]"] == ["petrol"]
+    assert params["search[filter_enum_petrol][1]"] == ["diesel"]
+    assert params["search[filter_enum_transmission][0]"] == ["manual"]
+    assert params["search[filter_enum_car_body][0]"] == ["sedan"]
+    assert params["search[filter_enum_car_body][1]"] == ["combi"]
+
+
+def test_build_search_url_car_generation_mapping():
+    config = {
+        "ui": {"category": "car"},
+        "olx_filters": {
+            "city_slug": "warszawa",
+            "make": "bmw",
+            "model": "seria-3",
+            "generation": "f30",
+        },
+    }
+
+    url = hs.build_search_url(config)
+    parsed = urlparse(url)
+    params = parse_qs(parsed.query)
+
+    assert parsed.path == "/motoryzacja/samochody/bmw/seria-3/warszawa/"
+    assert params["search[filter_float_year:from]"] == ["2011"]
+    assert params["search[filter_float_year:to]"] == ["2019"]
+    assert "search[filter_enum_generation]" not in params
+
+
+def test_listing_matches_generation():
+    filters = {
+        "category": "car",
+        "make": "bmw",
+        "model": "seria-3",
+        "generation": "f30",
+    }
+    
+    # Matching year
+    listing_ok = make_listing(year=2015)
+    assert hs.listing_matches(listing_ok, filters) is True
+
+    # Too old year
+    listing_old = make_listing(year=2008)
+    assert hs.listing_matches(listing_old, filters) is False
+
+    # Too new year
+    listing_new = make_listing(year=2021)
+    assert hs.listing_matches(listing_new, filters) is False
+
+    # Custom generation (matches title/description keyword)
+    filters_custom = {
+        "category": "car",
+        "make": "bmw",
+        "model": "seria-3",
+        "generation": "custom-gen-name",
+    }
+    listing_kw_ok = make_listing(title="BMW seria-3 custom-gen-name cheap")
+    assert hs.listing_matches(listing_kw_ok, filters_custom) is True
+
+    listing_kw_fail = make_listing(title="BMW seria-3 different cheap")
+    assert hs.listing_matches(listing_kw_fail, filters_custom) is False
+
+
+def test_listing_matches_sites():
+    # Only OLX allowed
+    filters_olx = {
+        "category": "car",
+        "sites": ["olx"],
+    }
+    listing_olx = make_listing(url="https://www.olx.pl/d/oferta/bmw-seria-3-1234.html")
+    listing_otomoto = make_listing(url="https://www.otomoto.pl/osobowe/oferta/bmw-seria-3-5678.html")
+
+    assert hs.listing_matches(listing_olx, filters_olx) is True
+    assert hs.listing_matches(listing_otomoto, filters_olx) is False
+
+    # Only Otomoto allowed
+    filters_otomoto = {
+        "category": "car",
+        "sites": ["otomoto"],
+    }
+    assert hs.listing_matches(listing_olx, filters_otomoto) is False
+    assert hs.listing_matches(listing_otomoto, filters_otomoto) is True
+
+    # Both allowed (explicitly)
+    filters_both = {
+        "category": "car",
+        "sites": ["olx", "otomoto"],
+    }
+    assert hs.listing_matches(listing_olx, filters_both) is True
+    assert hs.listing_matches(listing_otomoto, filters_both) is True
+
+    # Both allowed (implicitly, empty list)
+    filters_empty = {
+        "category": "car",
+        "sites": [],
+    }
+    assert hs.listing_matches(listing_olx, filters_empty) is True
+    assert hs.listing_matches(listing_otomoto, filters_empty) is True
+
+
+def test_listing_matches_condition():
+    # Only undamaged allowed
+    filters_undamaged = {
+        "category": "car",
+        "condition": ["notdamaged"],
+    }
+    listing_undamaged = make_listing(details=["Undamaged", "2015"])
+    listing_damaged = make_listing(details=["Damaged", "2015"])
+
+    assert hs.listing_matches(listing_undamaged, filters_undamaged) is True
+    assert hs.listing_matches(listing_damaged, filters_undamaged) is False
+
+    # Only damaged allowed
+    filters_damaged = {
+        "category": "car",
+        "condition": ["damaged"],
+    }
+    assert hs.listing_matches(listing_undamaged, filters_damaged) is False
+    assert hs.listing_matches(listing_damaged, filters_damaged) is True
+
+    # Both allowed
+    filters_both = {
+        "category": "car",
+        "condition": ["notdamaged", "damaged"],
+    }
+    assert hs.listing_matches(listing_undamaged, filters_both) is True
+    assert hs.listing_matches(listing_damaged, filters_both) is True
+
+    # Implicitly allowed
+    filters_empty = {
+        "category": "car",
+        "condition": [],
+    }
+    assert hs.listing_matches(listing_undamaged, filters_empty) is True
+    assert hs.listing_matches(listing_damaged, filters_empty) is True
+
+
+def test_listing_details_translation():
+    params = {
+        "condition": {
+            "value": {
+                "label": "Nieuszkodzony"
+            }
+        },
+        "year": {
+            "value": {
+                "label": "2015"
+            }
+        }
+    }
+    details = hs.listing_details(params)
+    assert "Undamaged" in details
+    assert "2015" in details
+    assert "Nieuszkodzony" not in details
+
+
 
 
 def test_parse_number_handles_common_price_formats():
@@ -193,6 +374,10 @@ def test_ui_payload_to_config_normalizes_car_fields():
             "year_from": "2015",
             "mileage_to": "150000",
             "only_with_photo": True,
+            "apply_radius_filter": True,
+            "center_lat": "50.0879",
+            "center_lon": "19.9530",
+            "radius_km": "5",
         },
         {"notifications": {"console": True}},
     )
@@ -204,6 +389,10 @@ def test_ui_payload_to_config_normalizes_car_fields():
     assert config["olx_filters"]["year_from"] == 2015.0
     assert config["olx_filters"]["mileage_to"] == 150000.0
     assert config["local_filters"]["category"] == "car"
+    assert config["local_filters"]["apply_radius_filter"] is False
+    assert config["local_filters"]["center_lat"] is None
+    assert config["local_filters"]["center_lon"] is None
+    assert config["local_filters"]["radius_km"] is None
 
 
 def test_build_scan_payload_message_formats_displayed_results():
@@ -224,7 +413,37 @@ def test_build_scan_payload_message_formats_displayed_results():
         displayed_count=3,
     )
 
-    assert "home-scanner: 3 displayed listing(s), 4 total match(es)" in message
+    assert "poland-scanner: 3 displayed listing(s), 4 total match(es)" in message
     assert "01. Flat near park | 2 000 PLN | 38 m2 | 2 rooms | Krakow, Krowodrza | 1.4 km | known total 2400 PLN" in message
     assert "https://www.olx.pl/d/oferta/test.html" in message
     assert "...and 2 more displayed listing(s)." in message
+
+
+def test_listing_from_ad_external_url():
+    ad_with_external = {
+        "id": "123",
+        "title": "Otomoto car",
+        "url": "https://www.olx.pl/d/oferta/otomoto-car.html",
+        "external_url": "https://www.otomoto.pl/osobowe/oferta/otomoto-car.html",
+        "params": [],
+        "map": {},
+        "location": {},
+        "description": "desc",
+        "photos": []
+    }
+    listing_ext = hs.listing_from_ad(ad_with_external)
+    assert listing_ext.url == "https://www.otomoto.pl/osobowe/oferta/otomoto-car.html"
+
+    ad_without_external = {
+        "id": "124",
+        "title": "OLX car",
+        "url": "https://www.olx.pl/d/oferta/olx-car.html",
+        "params": [],
+        "map": {},
+        "location": {},
+        "description": "desc",
+        "photos": []
+    }
+    listing_olx = hs.listing_from_ad(ad_without_external)
+    assert listing_olx.url == "https://www.olx.pl/d/oferta/olx-car.html"
+

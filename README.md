@@ -1,4 +1,4 @@
-# home-scanner
+# poland-scanner
 
 A local Python tool for scanning OLX.pl listings with saved filters. It includes a web UI, map view, seen-listing memory, favorites, and notifications. Two categories are currently supported: home rentals and cars.
 
@@ -17,7 +17,7 @@ A local Python tool for scanning OLX.pl listings with saved filters. It includes
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install -r requirements.txt
-python home_scanner.py init --config config.json
+python poland_scanner.py init --config config.json
 ```
 
 `config.json` is your personal settings file and is ignored by Git. Defaults come from [config.example.json](./config.example.json).
@@ -29,7 +29,7 @@ python home_scanner.py init --config config.json
 ![Mobile web UI](./docs/screenshots/web-ui-mobile.png)
 
 ```powershell
-python home_scanner.py --config config.json serve
+python poland_scanner.py --config config.json serve
 ```
 
 Open this address in your browser:
@@ -49,19 +49,19 @@ When `Hide seen listings` is enabled, a scan only displays listings that were no
 Run one scan:
 
 ```powershell
-python home_scanner.py --config config.json scan
+python poland_scanner.py --config config.json scan
 ```
 
 On the first run, current listings are stored in `seen.json` and notifications are not sent by default. To notify for all current results:
 
 ```powershell
-python home_scanner.py --config config.json scan --notify-current
+python poland_scanner.py --config config.json scan --notify-current
 ```
 
 Run periodic scans:
 
 ```powershell
-python home_scanner.py --config config.json watch
+python poland_scanner.py --config config.json watch
 ```
 
 While the watcher is running, type `scan` for an immediate scan or `q` to quit.
@@ -69,7 +69,7 @@ While the watcher is running, type `scan` for an immediate scan or `q` to quit.
 Print the OLX URL generated from the config:
 
 ```powershell
-python home_scanner.py --config config.json url
+python poland_scanner.py --config config.json url
 ```
 
 Legacy `python olx_rent_watcher.py ...` commands still work for backward compatibility.
@@ -81,7 +81,7 @@ The default notification output is the terminal plus a short sound. To enable Te
 ```powershell
 $env:TELEGRAM_BOT_TOKEN="123:abc"
 $env:TELEGRAM_CHAT_ID="123456"
-python home_scanner.py --config config.json watch
+python poland_scanner.py --config config.json watch
 ```
 
 For ntfy, set `notifications.ntfy.enabled` to `true` and provide a unique `topic`.
@@ -100,7 +100,7 @@ Run checks:
 
 ```powershell
 python -m pytest
-python -m py_compile home_scanner.py olx_rent_watcher.py
+python -m py_compile poland_scanner.py olx_rent_watcher.py
 ```
 
 ## Before Publishing

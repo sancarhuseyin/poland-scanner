@@ -1,5 +1,5 @@
 [project]
-name = "home-scanner"
+name = "poland-scanner"
 version = "0.1.0"
 description = "Local OLX.pl listing scanner with web UI, filters, map view, and notifications."
 readme = "README.md"

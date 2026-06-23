@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 import argparse
 import concurrent.futures
@@ -29,7 +29,7 @@ except ImportError as exc:  # pragma: no cover - startup guidance
     ) from exc
 
 
-APP_NAME = "home-scanner"
+APP_NAME = "poland-scanner"
 DEFAULT_CONFIG_PATH = Path("config.json")
 DEFAULT_STATE_PATH = Path("seen.json")
 DEFAULT_TRANSLATION_CACHE_PATH = Path("translations.json")
@@ -59,6 +59,7 @@ ROOM_VALUES = {
 }
 
 CITY_OPTIONS = [
+    {"slug": "poland", "name": "Cała Polska", "city_id": 0, "region_id": 0, "lat": 52.06927, "lon": 19.47129},
     {"slug": "krakow", "name": "Kraków", "city_id": 8959, "region_id": 4, "lat": 50.07567, "lon": 19.93084},
     {"slug": "warszawa", "name": "Warszawa", "city_id": 17871, "region_id": 2, "lat": 52.23614, "lon": 21.00817},
     {"slug": "wroclaw", "name": "Wrocław", "city_id": 19701, "region_id": 3, "lat": 51.10195, "lon": 17.03667},
@@ -84,6 +85,81 @@ CATEGORY_OPTIONS = {
     },
 }
 CATEGORY_BY_PATH = {item["category_path"]: key for key, item in CATEGORY_OPTIONS.items()}
+
+GENERATION_YEARS = {
+    ("audi", "a3", "8y"): (2020, None),
+    ("audi", "a3", "8v"): (2012, 2020),
+    ("audi", "a3", "8p"): (2003, 2013),
+    ("audi", "a3", "8l"): (1996, 2003),
+    ("audi", "a4", "b9"): (2015, None),
+    ("audi", "a4", "b8"): (2007, 2015),
+    ("audi", "a4", "b7"): (2004, 2008),
+    ("audi", "a4", "b6"): (2000, 2004),
+    ("audi", "a4", "b5"): (1994, 2001),
+    ("audi", "a6", "c8"): (2018, None),
+    ("audi", "a6", "c7"): (2011, 2018),
+    ("audi", "a6", "c6"): (2004, 2011),
+    ("audi", "a6", "c5"): (1997, 2004),
+    ("audi", "a8", "d5"): (2017, None),
+    ("audi", "a8", "d4"): (2010, 2017),
+    ("audi", "a8", "d3"): (2002, 2010),
+    ("audi", "a8", "d2"): (1994, 2002),
+    ("audi", "q5", "fy"): (2016, None),
+    ("audi", "q5", "8r"): (2008, 2016),
+    ("audi", "tt", "8s"): (2014, None),
+    ("audi", "tt", "8j"): (2006, 2014),
+    ("audi", "tt", "8n"): (1998, 2006),
+    ("bmw", "seria-1", "f40"): (2019, None),
+    ("bmw", "seria-1", "f20"): (2011, 2019),
+    ("bmw", "seria-1", "e87"): (2004, 2013),
+    ("bmw", "seria-3", "g20"): (2018, None),
+    ("bmw", "seria-3", "f30"): (2011, 2019),
+    ("bmw", "seria-3", "e90"): (2005, 2013),
+    ("bmw", "seria-3", "e46"): (1998, 2007),
+    ("bmw", "seria-3", "e36"): (1990, 2000),
+    ("bmw", "seria-5", "g30"): (2016, None),
+    ("bmw", "seria-5", "f10"): (2010, 2017),
+    ("bmw", "seria-5", "e60"): (2003, 2010),
+    ("bmw", "seria-5", "e39"): (1995, 2004),
+    ("bmw", "seria-5", "e34"): (1987, 1996),
+    ("bmw", "seria-7", "g11"): (2015, 2022),
+    ("bmw", "seria-7", "f01"): (2008, 2015),
+    ("bmw", "seria-7", "e65"): (2001, 2008),
+    ("bmw", "seria-7", "e38"): (1994, 2001),
+    ("bmw", "x5", "g05"): (2018, None),
+    ("bmw", "x5", "f15"): (2013, 2018),
+    ("bmw", "x5", "e70"): (2006, 2013),
+    ("bmw", "x5", "e53"): (1999, 2006),
+    ("ford", "focus", "focus-mk4"): (2018, None),
+    ("ford", "focus", "focus-mk3"): (2011, 2018),
+    ("ford", "focus", "focus-mk2"): (2004, 2011),
+    ("ford", "focus", "focus-mk1"): (1998, 2004),
+    ("ford", "mondeo", "mk5"): (2014, 2022),
+    ("ford", "mondeo", "mk4"): (2007, 2014),
+    ("ford", "mondeo", "mk3"): (2000, 2007),
+    ("opel", "astra", "astra-k"): (2015, 2021),
+    ("opel", "astra", "astra-j"): (2009, 2015),
+    ("opel", "astra", "astra-h"): (2004, 2014),
+    ("opel", "astra", "astra-g"): (1998, 2009),
+    ("opel", "corsa", "corsa-f"): (2019, None),
+    ("opel", "corsa", "corsa-e"): (2014, 2019),
+    ("opel", "corsa", "corsa-d"): (2006, 2014),
+    ("opel", "corsa", "corsa-c"): (2000, 2006),
+    ("opel", "insignia", "insignia-b"): (2017, 2022),
+    ("opel", "insignia", "insignia-a"): (2008, 2017),
+    ("volkswagen", "golf", "golf-viii"): (2019, None),
+    ("volkswagen", "golf", "golf-vii"): (2012, 2020),
+    ("volkswagen", "golf", "golf-vi"): (2008, 2013),
+    ("volkswagen", "golf", "golf-v"): (2003, 2009),
+    ("volkswagen", "golf", "golf-iv"): (1997, 2006),
+    ("volkswagen", "passat", "passat-b8"): (2014, None),
+    ("volkswagen", "passat", "passat-b7"): (2010, 2014),
+    ("volkswagen", "passat", "passat-b6"): (2005, 2010),
+    ("volkswagen", "passat", "passat-b5"): (1996, 2005),
+    ("volkswagen", "polo", "polo-vi"): (2017, None),
+    ("volkswagen", "polo", "polo-v"): (2009, 2017),
+    ("volkswagen", "polo", "polo-iv"): (2001, 2009)
+}
 
 _TRANSLATION_CACHE: dict[str, str] | None = None
 _TRANSLATION_CACHE_LOCK = threading.Lock()
@@ -114,6 +190,8 @@ class Listing:
     cost_items: list[dict[str, Any]]
     details: list[str]
     has_photo: bool
+    year: int | None = None
+    mileage: int | None = None
 
     @property
     def total_known_cost(self) -> float | None:
@@ -262,6 +340,8 @@ def sync_local_filters_from_olx(config: dict[str, Any]) -> None:
     local_filters["rooms"] = olx_filters.get("rooms") or []
     local_filters["furniture"] = olx_filters.get("furniture") or []
     local_filters["require_photo"] = bool(olx_filters.get("only_with_photo"))
+    local_filters["sites"] = olx_filters.get("sites") or []
+    local_filters["condition"] = olx_filters.get("condition") or []
     config["local_filters"] = local_filters
 
 
@@ -288,6 +368,8 @@ def empty_local_filters() -> dict[str, Any]:
         "radius_km": None,
         "apply_total_limit": False,
         "apply_radius_filter": False,
+        "sites": [],
+        "condition": [],
     }
 
 
@@ -411,9 +493,22 @@ def build_search_url(config: dict[str, Any]) -> str:
     city_slug = str(filters.get("city_slug") or "krakow").strip("/")
     query_text = str(filters.get("query") or "").strip()
 
-    path = f"{category_path}/{city_slug}/"
-    if query_text:
-        path = f"{category_path}/{city_slug}/q-{quote(query_text)}/"
+    if category == "car":
+        make = str(filters.get("make") or "").strip().lower().replace(" ", "-")
+        model = str(filters.get("model") or "").strip().lower().replace(" ", "-")
+        if make:
+            category_path = f"{category_path}/{make}"
+            if model:
+                category_path = f"{category_path}/{model}"
+
+    if city_slug == "poland":
+        path = f"{category_path}/"
+        if query_text:
+            path = f"{category_path}/q-{quote(query_text)}/"
+    else:
+        path = f"{category_path}/{city_slug}/"
+        if query_text:
+            path = f"{category_path}/{city_slug}/q-{quote(query_text)}/"
 
     params: list[tuple[str, str]] = []
     add_param(params, "search[order]", filters.get("sort") or "filter_float_price:asc")
@@ -424,10 +519,49 @@ def build_search_url(config: dict[str, Any]) -> str:
         add_param(params, "search[filter_float_m:from]", filters.get("area_from"))
         add_param(params, "search[filter_float_m:to]", filters.get("area_to"))
     if category == "car":
-        add_param(params, "search[filter_float_year:from]", filters.get("year_from"))
-        add_param(params, "search[filter_float_year:to]", filters.get("year_to"))
+        make = str(filters.get("make") or "").strip().lower()
+        model = str(filters.get("model") or "").strip().lower()
+        generation = str(filters.get("generation") or "").strip().lower()
+
+        gen_year_from = None
+        gen_year_to = None
+        if make and model and generation:
+            key = (make, model, generation)
+            if key in GENERATION_YEARS:
+                gen_year_from, gen_year_to = GENERATION_YEARS[key]
+
+        year_from = filters.get("year_from")
+        if gen_year_from is not None:
+            year_from = max(int(year_from), gen_year_from) if year_from not in (None, "") else gen_year_from
+
+        year_to = filters.get("year_to")
+        if gen_year_to is not None:
+            year_to = min(int(year_to), gen_year_to) if year_to not in (None, "") else gen_year_to
+
+        add_param(params, "search[filter_float_year:from]", year_from)
+        add_param(params, "search[filter_float_year:to]", year_to)
         add_param(params, "search[filter_float_milage:from]", filters.get("mileage_from"))
         add_param(params, "search[filter_float_milage:to]", filters.get("mileage_to"))
+        add_param(params, "search[filter_float_enginesize:from]", filters.get("enginesize_from"))
+        add_param(params, "search[filter_float_enginesize:to]", filters.get("enginesize_to"))
+        add_param(params, "search[filter_float_enginepower:from]", filters.get("enginepower_from"))
+        add_param(params, "search[filter_float_enginepower:to]", filters.get("enginepower_to"))
+
+        for index, petrol in enumerate(as_list(filters.get("petrol"))):
+            if petrol:
+                params.append((f"search[filter_enum_petrol][{index}]", str(petrol)))
+
+        for index, transmission in enumerate(as_list(filters.get("transmission"))):
+            if transmission:
+                params.append((f"search[filter_enum_transmission][{index}]", str(transmission)))
+
+        for index, car_body in enumerate(as_list(filters.get("car_body"))):
+            if car_body:
+                params.append((f"search[filter_enum_car_body][{index}]", str(car_body)))
+
+        for index, condition in enumerate(as_list(filters.get("condition"))):
+            if condition:
+                params.append((f"search[filter_enum_condition][{index}]", str(condition)))
     add_param(params, "search[district_id]", filters.get("district_id"))
     add_param(params, "search[dist]", filters.get("distance_km"))
 
@@ -585,7 +719,7 @@ def listing_from_ad(ad: dict[str, Any]) -> Listing:
     return Listing(
         id=str(ad.get("id") or ad.get("url") or ""),
         title=str(ad.get("title") or "").strip(),
-        url=str(ad.get("url") or "").strip(),
+        url=str(ad.get("external_url") or ad.get("url") or "").strip(),
         price_value=parse_number((price.get("value") or {}).get("value")),
         price_label=str((price.get("value") or {}).get("label") or ""),
         rent_value=parse_number((rent.get("value") or {}).get("key")),
@@ -606,6 +740,8 @@ def listing_from_ad(ad: dict[str, Any]) -> Listing:
         cost_items=cost_items,
         details=listing_details(params),
         has_photo=bool(photos),
+        year=int(parse_number((params.get("year") or {}).get("value")) or 0) or None,
+        mileage=int(parse_number((params.get("milage") or {}).get("value")) or 0) or None,
     )
 
 
@@ -614,8 +750,13 @@ def listing_details(params: dict[str, dict[str, Any]]) -> list[str]:
     for key in ("year", "milage", "petrol", "transmission", "car_body", "enginesize", "enginepower", "condition"):
         value = params.get(key) or {}
         label = str((value.get("value") or {}).get("label") or "").strip()
-        if label and label not in details:
-            details.append(label)
+        if label:
+            if label.lower() == "nieuszkodzony":
+                label = "Undamaged"
+            elif label.lower() == "uszkodzony":
+                label = "Damaged"
+            if label not in details:
+                details.append(label)
     return details
 
 
@@ -872,6 +1013,48 @@ def listing_matches(listing: Listing, filters: dict[str, Any]) -> bool:
             return False
         if haversine_km(center_lat, center_lon, listing.lat, listing.lon) > radius_km:
             return False
+
+    if category == "car":
+        sites = [s.strip().lower() for s in as_list(filters.get("sites")) if s]
+        if sites:
+            url_lower = listing.url.lower()
+            matched = False
+            for s in sites:
+                if s == "olx" and "olx.pl" in url_lower:
+                    matched = True
+                elif s == "otomoto" and "otomoto.pl" in url_lower:
+                    matched = True
+            if not matched:
+                return False
+
+        allowed_conditions = {c.strip().lower() for c in as_list(filters.get("condition")) if c}
+        if allowed_conditions:
+            has_match = False
+            for cond in allowed_conditions:
+                target = "undamaged" if cond == "notdamaged" else "damaged"
+                if any(target == d.lower() for d in listing.details):
+                    has_match = True
+                    break
+            if not has_match:
+                return False
+
+        generation = str(filters.get("generation") or "").strip().lower()
+        if generation:
+            make = str(filters.get("make") or "").strip().lower()
+            model = str(filters.get("model") or "").strip().lower()
+            key = (make, model, generation)
+            if key in GENERATION_YEARS:
+                gen_year_from, gen_year_to = GENERATION_YEARS[key]
+                if listing.year is not None:
+                    if gen_year_from is not None and listing.year < gen_year_from:
+                        return False
+                    if gen_year_to is not None and listing.year > gen_year_to:
+                        return False
+            else:
+                gen_normalized = normalize_text(generation)
+                haystack = normalize_text(" ".join([listing.title, listing.description] + listing.details))
+                if gen_normalized not in haystack:
+                    return False
 
     haystack = normalize_text(
         " ".join([listing.title, listing.description, listing.location, listing.rooms_label, " ".join(listing.details)])
@@ -1285,7 +1468,7 @@ def build_scan_payload_message(
     total_count: int,
     displayed_count: int,
 ) -> str:
-    lines = [f"home-scanner: {displayed_count} displayed listing(s), {total_count} total match(es)"]
+    lines = [f"poland-scanner: {displayed_count} displayed listing(s), {total_count} total match(es)"]
     for index, listing in enumerate(listings, start=1):
         lines.append("")
         lines.append(format_payload_listing_line(index, listing))
@@ -1438,16 +1621,22 @@ def make_web_handler(config_path: Path, state_path: Path) -> type[BaseHTTPReques
         def do_GET(self) -> None:
             try:
                 parsed = urlparse(self.path)
-                if parsed.path == "/":
+                if parsed.path in ("/", "/home", "/car"):
                     self.write_html(INDEX_HTML)
                     return
                 if parsed.path == "/api/config":
                     config = load_json_file(config_path, default=load_json_file(Path(__file__).with_name("config.example.json")))
+                    telegram_settings = config.get("notifications", {}).get("telegram", {})
                     self.write_json({
                         "ok": True,
                         "config": config_to_ui_payload(config),
                         "cities": CITY_OPTIONS,
                         "categories": [{"key": key, **value} for key, value in CATEGORY_OPTIONS.items()],
+                        "telegram": {
+                            "bot_token": telegram_settings.get("bot_token") or "",
+                            "chat_id": telegram_settings.get("chat_id") or "",
+                            "enabled": bool(telegram_settings.get("enabled")),
+                        }
                     })
                     return
                 if parsed.path == "/api/districts":
@@ -1476,8 +1665,7 @@ def make_web_handler(config_path: Path, state_path: Path) -> type[BaseHTTPReques
 
                 if self.path == "/api/scan":
                     config = ui_payload_to_config(payload, base_config)
-                    if payload.get("save_config"):
-                        save_json_file(config_path, config)
+                    save_json_file(config_path, config)
                     result = scan_for_ui(config, state_path, hide_seen=bool(payload.get("hide_seen")))
                     self.write_json(result)
                     return
@@ -1505,6 +1693,35 @@ def make_web_handler(config_path: Path, state_path: Path) -> type[BaseHTTPReques
                     config = ui_payload_to_config(payload, base_config)
                     removed = reset_seen_for_config(config, state_path)
                     self.write_json({"ok": True, "removed": removed})
+                    return
+
+                if self.path == "/api/telegram/test":
+                    token = str(payload.get("bot_token") or "").strip()
+                    chat_id = str(payload.get("chat_id") or "").strip()
+                    if not token or not chat_id:
+                        raise ValueError("Telegram Bot Token and Chat ID are required.")
+                    test_url = f"https://api.telegram.org/bot{token}/sendMessage"
+                    res = requests.post(
+                        test_url,
+                        json={"chat_id": chat_id, "text": "✅ Telegram integration connection test was successful!", "disable_web_page_preview": True},
+                        timeout=10,
+                    )
+                    res.raise_for_status()
+                    self.write_json({"ok": True, "message": "Test message sent successfully!"})
+                    return
+
+                if self.path == "/api/config/telegram":
+                    token = str(payload.get("bot_token") or "").strip()
+                    chat_id = str(payload.get("chat_id") or "").strip()
+                    enabled = bool(payload.get("enabled"))
+                    config = load_json_file(config_path, default=load_json_file(Path(__file__).with_name("config.example.json")))
+                    notifications = config.setdefault("notifications", {})
+                    telegram = notifications.setdefault("telegram", {})
+                    telegram["bot_token"] = token
+                    telegram["chat_id"] = chat_id
+                    telegram["enabled"] = enabled
+                    save_json_file(config_path, config)
+                    self.write_json({"ok": True})
                     return
 
                 self.send_error(HTTPStatus.NOT_FOUND)
@@ -1579,9 +1796,21 @@ def ui_payload_to_config(payload: dict[str, Any], base_config: dict[str, Any]) -
     olx_filters["year_to"] = coerce_number(payload.get("year_to")) if category == "car" else None
     olx_filters["mileage_from"] = coerce_number(payload.get("mileage_from")) if category == "car" else None
     olx_filters["mileage_to"] = coerce_number(payload.get("mileage_to")) if category == "car" else None
+    olx_filters["enginesize_from"] = coerce_number(payload.get("enginesize_from")) if category == "car" else None
+    olx_filters["enginesize_to"] = coerce_number(payload.get("enginesize_to")) if category == "car" else None
+    olx_filters["enginepower_from"] = coerce_number(payload.get("enginepower_from")) if category == "car" else None
+    olx_filters["enginepower_to"] = coerce_number(payload.get("enginepower_to")) if category == "car" else None
+    olx_filters["petrol"] = as_list(payload.get("petrol")) if category == "car" else []
+    olx_filters["transmission"] = as_list(payload.get("transmission")) if category == "car" else []
+    olx_filters["car_body"] = as_list(payload.get("car_body")) if category == "car" else []
+    olx_filters["condition"] = as_list(payload.get("condition")) if category == "car" else []
     olx_filters["district_id"] = coerce_number(payload.get("district_id"))
+    olx_filters["make"] = str(payload.get("make") or "").strip()
+    olx_filters["model"] = str(payload.get("model") or "").strip()
+    olx_filters["generation"] = str(payload.get("generation") or "").strip()
     olx_filters["distance_km"] = coerce_number(payload.get("distance_km"))
     olx_filters["only_with_photo"] = bool(payload.get("only_with_photo"))
+    olx_filters["sites"] = as_list(payload.get("sites")) if category == "car" else []
 
     local_filters = empty_local_filters()
     local_filters["category"] = category
@@ -1592,16 +1821,24 @@ def ui_payload_to_config(payload: dict[str, Any], base_config: dict[str, Any]) -
     local_filters["rooms"] = rooms
     local_filters["furniture"] = furniture
     local_filters["require_photo"] = bool(payload.get("only_with_photo"))
+    local_filters["sites"] = olx_filters["sites"]
+    local_filters["condition"] = olx_filters["condition"]
     local_filters["districts_any"] = clean_string_list(payload.get("districts_any"))
     local_filters["keywords_any"] = clean_string_list(payload.get("keywords_any"))
     local_filters["keywords_all"] = clean_string_list(payload.get("keywords_all"))
     local_filters["exclude_keywords"] = clean_string_list(payload.get("exclude_keywords"))
     local_filters["max_total_known_cost"] = coerce_number(payload.get("max_total_known_cost"), 2500)
     local_filters["apply_total_limit"] = bool(payload.get("apply_total_limit"))
-    local_filters["center_lat"] = coerce_number(payload.get("center_lat"))
-    local_filters["center_lon"] = coerce_number(payload.get("center_lon"))
-    local_filters["radius_km"] = coerce_number(payload.get("radius_km"), 5)
-    local_filters["apply_radius_filter"] = bool(payload.get("apply_radius_filter"))
+    if category == "car":
+        local_filters["center_lat"] = None
+        local_filters["center_lon"] = None
+        local_filters["radius_km"] = None
+        local_filters["apply_radius_filter"] = False
+    else:
+        local_filters["center_lat"] = coerce_number(payload.get("center_lat"))
+        local_filters["center_lon"] = coerce_number(payload.get("center_lon"))
+        local_filters["radius_km"] = coerce_number(payload.get("radius_km"), 5)
+        local_filters["apply_radius_filter"] = bool(payload.get("apply_radius_filter"))
     config["local_filters"] = local_filters
 
     return config
@@ -1616,6 +1853,10 @@ def config_to_ui_payload(config: dict[str, Any]) -> dict[str, Any]:
         "category": category,
         "city_slug": olx_filters.get("city_slug") or "krakow",
         "query": olx_filters.get("query") or "",
+        "make": olx_filters.get("make") or "",
+        "model": olx_filters.get("model") or "",
+        "generation": olx_filters.get("generation") or "",
+        "sites": olx_filters.get("sites") or [],
         "sort": ui_config.get("sort_mode") or olx_filters.get("sort") or CATEGORY_OPTIONS[category]["default_sort"],
         "owner_type": olx_filters.get("owner_type") or "all",
         "price_from": olx_filters.get("price_from"),
@@ -1626,6 +1867,14 @@ def config_to_ui_payload(config: dict[str, Any]) -> dict[str, Any]:
         "year_to": olx_filters.get("year_to"),
         "mileage_from": olx_filters.get("mileage_from"),
         "mileage_to": olx_filters.get("mileage_to"),
+        "enginesize_from": olx_filters.get("enginesize_from"),
+        "enginesize_to": olx_filters.get("enginesize_to"),
+        "enginepower_from": olx_filters.get("enginepower_from"),
+        "enginepower_to": olx_filters.get("enginepower_to"),
+        "petrol": olx_filters.get("petrol") or [],
+        "transmission": olx_filters.get("transmission") or [],
+        "car_body": olx_filters.get("car_body") or [],
+        "condition": olx_filters.get("condition") or [],
         "rooms": olx_filters.get("rooms") or [],
         "furniture": olx_filters.get("furniture") or local_filters.get("furniture") or [],
         "district_id": olx_filters.get("district_id"),
@@ -1649,6 +1898,8 @@ def config_to_ui_payload(config: dict[str, Any]) -> dict[str, Any]:
 
 def fetch_districts(city_slug: str, category: str = "home") -> list[dict[str, Any]]:
     city_slug = str(city_slug or "krakow").strip().strip("/") or "krakow"
+    if city_slug == "poland":
+        return []
     search_url = f"{OLX_ROOT}/{category_path_for(normalize_category(category))}/{city_slug}/"
     session = make_session({})
     response = session.get(search_url, timeout=30)
@@ -1869,132 +2120,379 @@ INDEX_HTML = r"""<!doctype html>
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>home-scanner</title>
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <title>poland scanner</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg: #11130f;
-      --panel: #191d17;
-      --panel-2: #20251d;
-      --field: #0d0f0c;
-      --line: #343b31;
-      --ink: #f1efe4;
-      --muted: #a2aa98;
-      --soft: #c9d0bc;
-      --accent: #49c5a2;
-      --accent-2: #e0a33a;
-      --danger: #ff6f61;
-      --shadow: rgba(0, 0, 0, 0.34);
+      --bg: #090a0f;
+      --panel: rgba(17, 19, 31, 0.85);
+      --panel-2: rgba(26, 29, 46, 0.85);
+      --field: rgba(10, 11, 19, 0.6);
+      --line: rgba(255, 255, 255, 0.08);
+      --ink: #f3f4f6;
+      --muted: #9ca3af;
+      --soft: #cbd5e1;
+      --accent: #00f2fe;
+      --accent-grad: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%);
+      --accent-2: #ff007f;
+      --danger: #ff4d4d;
+      --shadow: rgba(0, 0, 0, 0.5);
+      --glass-blur: blur(16px);
     }
     * { box-sizing: border-box; }
     body {
       margin: 0;
       color: var(--ink);
       background:
-        radial-gradient(circle at 18% 12%, rgba(73, 197, 162, 0.12), transparent 28%),
-        linear-gradient(90deg, rgba(241,239,228,0.035) 1px, transparent 1px),
-        linear-gradient(180deg, rgba(241,239,228,0.03) 1px, transparent 1px),
+        radial-gradient(circle at 18% 12%, rgba(0, 242, 254, 0.15), transparent 40%),
+        radial-gradient(circle at 85% 75%, rgba(255, 0, 127, 0.12), transparent 45%),
+        linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px),
+        linear-gradient(180deg, rgba(255,255,255,0.015) 1px, transparent 1px),
         var(--bg);
-      background-size: auto, 34px 34px, 34px 34px, auto;
-      font-family: Bahnschrift, "Segoe UI Variable", "Segoe UI", sans-serif;
-      letter-spacing: 0;
+      background-size: auto, auto, 24px 24px, 24px 24px, auto;
+      font-family: 'Plus Jakarta Sans', 'Outfit', sans-serif;
+      letter-spacing: -0.01em;
     }
     button, input, select { font: inherit; }
-    .shell { min-height: 100vh; display: grid; grid-template-columns: minmax(340px, 450px) 1fr; }
+    
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: rgba(10, 11, 19, 0.4);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 99px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+    ::selection {
+      background: rgba(0, 242, 254, 0.3);
+      color: #fff;
+    }
+
+    .top-header {
+      height: 70px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 28px;
+      background: rgba(13, 15, 24, 0.75);
+      backdrop-filter: var(--glass-blur);
+      border-bottom: 1px solid var(--line);
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      box-sizing: border-box;
+    }
+    .header-brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      cursor: pointer;
+    }
+    .header-brand h1 {
+      margin: 0;
+      font-size: 22px;
+      font-weight: 800;
+      font-family: 'Outfit', sans-serif;
+      background: linear-gradient(135deg, #fff 30%, var(--muted) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .header-logo {
+      width: 32px;
+      height: 32px;
+      flex-shrink: 0;
+      transition: transform 0.5s cubic-bezier(0.19, 1, 0.22, 1);
+    }
+    .header-brand:hover .header-logo {
+      transform: rotate(180deg);
+    }
+    .shell { height: calc(100vh - 70px); display: grid; grid-template-columns: minmax(340px, 450px) 1fr; }
     aside {
       border-right: 1px solid var(--line);
-      background: rgba(17, 19, 15, 0.9);
-      padding: 22px;
-      overflow: auto;
-      max-height: 100vh;
+      background: rgba(10, 11, 19, 0.7);
+      backdrop-filter: var(--glass-blur);
+      padding: 24px;
+      overflow-y: auto;
+      height: 100%;
     }
-    main { padding: 22px 26px 32px; overflow: auto; max-height: 100vh; }
+    main { padding: 24px 28px 32px; overflow-y: auto; height: 100%; }
     .brand { display: flex; justify-content: space-between; gap: 16px; align-items: flex-start; margin-bottom: 18px; }
-    h1 { margin: 0; font-size: 25px; line-height: 1.08; font-weight: 820; }
-    .stamp {
-      border: 1px solid var(--accent);
-      color: var(--accent);
-      padding: 5px 8px;
-      font-size: 11px;
-      text-transform: uppercase;
-      white-space: nowrap;
-      background: rgba(73, 197, 162, 0.08);
-    }
-    .section { border-top: 1px solid var(--line); padding-top: 14px; margin-top: 14px; }
+    h1 { margin: 0; font-size: 25px; line-height: 1.08; font-weight: 800; font-family: 'Outfit', sans-serif; }
+    
+    .section { border-top: 1px solid var(--line); padding-top: 18px; margin-top: 18px; }
     .section-title {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      font-size: 12px;
+      font-size: 11px;
       font-weight: 800;
       text-transform: uppercase;
-      color: var(--soft);
-      margin-bottom: 10px;
+      color: var(--muted);
+      margin-bottom: 14px;
+      letter-spacing: 0.12em;
     }
-    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-    .field { display: grid; gap: 5px; margin-bottom: 10px; }
-    label { font-size: 12px; color: var(--soft); font-weight: 650; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .field { display: grid; gap: 5px; margin-bottom: 12px; }
+    .hidden-input { display: none; margin-top: 6px; }
+    label { font-size: 12px; color: var(--muted); font-weight: 600; }
     input, select {
       width: 100%;
-      height: 38px;
+      height: 40px;
       border: 1px solid var(--line);
       background: var(--field);
       color: var(--ink);
-      padding: 0 10px;
-      border-radius: 6px;
+      padding: 0 14px;
+      border-radius: 8px;
       outline: none;
+      transition: all 0.2s ease;
     }
-    input:focus, select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(73, 197, 162, 0.14); }
-    select option { background: var(--field); color: var(--ink); }
+    input:focus, select:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(0, 242, 254, 0.15);
+      background: rgba(13, 15, 24, 0.85);
+    }
+    select option { background: #0c0e17; color: var(--ink); }
     .checks { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
     .checks.two { grid-template-columns: 1fr 1fr; }
-    .category-choice { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-    .category-choice label {
+    .category-choice { display: flex; gap: 8px; }
+    .category-choice a {
       border: 1px solid var(--line);
-      border-radius: 6px;
-      background: var(--panel-2);
-      min-height: 42px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.03);
+      min-height: 40px;
+      padding: 0 16px;
       display: flex;
       align-items: center;
       justify-content: center;
       gap: 8px;
       cursor: pointer;
-      color: var(--ink);
-      font-weight: 820;
+      color: var(--soft);
+      font-weight: 600;
+      font-size: 13.5px;
+      text-decoration: none;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      flex-shrink: 0;
+      white-space: nowrap;
     }
-    .category-choice input { width: 16px; height: 16px; accent-color: var(--accent); }
+    .category-choice a:hover {
+      border-color: rgba(255, 255, 255, 0.15);
+      background: rgba(255, 255, 255, 0.08);
+      color: #fff;
+    }
+    body[data-category="home"] .category-choice a[data-value="home"],
+    body[data-category="car"] .category-choice a[data-value="car"] {
+      border-color: var(--accent);
+      background: rgba(0, 242, 254, 0.1);
+      color: var(--accent);
+      box-shadow: 0 0 16px rgba(0, 242, 254, 0.2);
+    }
     body[data-category="car"] .home-only,
     body[data-category="home"] .car-only { display: none !important; }
-    .checks label, .switch {
+    body[data-category="car"] .map-shell { display: none; }
+    body[data-category="car"].show-car-map .map-shell { display: block; }
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .settings-btn {
       border: 1px solid var(--line);
-      border-radius: 6px;
-      background: var(--panel-2);
-      min-height: 38px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.03);
+      min-height: 40px;
+      padding: 0 16px;
       display: flex;
       align-items: center;
       gap: 8px;
-      padding: 8px 10px;
       cursor: pointer;
-      color: var(--ink);
+      color: var(--soft);
+      font-weight: 600;
+      font-size: 13.5px;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      flex-shrink: 0;
+      white-space: nowrap;
     }
-    .checks input, .switch input { width: 16px; height: 16px; accent-color: var(--accent); }
-    .actions { padding-top: 20px; display: grid; gap: 9px; }
-    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; }
-    button {
+    .settings-btn:hover {
+      border-color: var(--accent);
+      background: rgba(0, 242, 254, 0.08);
+      color: var(--accent);
+      box-shadow: 0 0 16px rgba(0, 242, 254, 0.15);
+    }
+    .toolbar-sort {
+      width: auto;
+      min-width: 170px;
+      height: 40px;
+      background: rgba(255, 255, 255, 0.03);
       border: 1px solid var(--line);
-      background: var(--panel-2);
-      color: var(--ink);
-      min-height: 40px;
-      border-radius: 6px;
+      color: var(--soft);
+      border-radius: 8px;
+      outline: none;
+      font-weight: 600;
+      font-size: 13.5px;
       padding: 0 12px;
       cursor: pointer;
-      font-weight: 760;
+      transition: all 0.2s ease;
     }
-    button:hover { box-shadow: 0 10px 24px var(--shadow); border-color: var(--accent); }
-    button:disabled { opacity: 0.55; cursor: wait; transform: none; }
-    button.accent { border-color: #277d68; background: var(--accent); color: #07100c; }
-    button.warning { border-color: #8a6427; background: rgba(224, 163, 58, 0.16); color: #f5d394; }
-    button.active { border-color: var(--accent-2); color: #f5d394; background: rgba(224, 163, 58, 0.13); }
+    .toolbar-sort:focus {
+      border-color: var(--accent);
+      color: #fff;
+    }
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(4, 5, 10, 0.7);
+      backdrop-filter: blur(12px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+    }
+    .modal-overlay.open {
+      display: flex;
+    }
+    .modal-content {
+      background: rgba(18, 20, 36, 0.95);
+      backdrop-filter: var(--glass-blur);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 16px;
+      width: 90%;
+      max-width: 480px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+      overflow: hidden;
+      animation: modalSlide 0.35s cubic-bezier(0.19, 1, 0.22, 1);
+    }
+    @keyframes modalSlide {
+      from { transform: translateY(20px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 18px 24px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.02);
+    }
+    .modal-header h2 {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 700;
+      font-family: 'Outfit', sans-serif;
+    }
+    .modal-close {
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-size: 28px;
+      cursor: pointer;
+      line-height: 1;
+      padding: 0;
+      transition: color 0.2s ease;
+    }
+    .modal-close:hover {
+      color: var(--danger);
+    }
+    .modal-body {
+      padding: 24px;
+    }
+    .settings-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 20px;
+    }
+    .settings-status {
+      margin-top: 14px;
+      font-size: 13px;
+      text-align: center;
+      line-height: 1.4;
+    }
+    .settings-status.success { color: var(--accent); }
+    .settings-status.error { color: var(--danger); }
+    .checks label, .switch {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.02);
+      min-height: 40px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      cursor: pointer;
+      color: var(--soft);
+      font-size: 13.5px;
+      transition: all 0.2s ease;
+    }
+    .checks label:hover, .switch:hover {
+      border-color: rgba(255, 255, 255, 0.15);
+      background: rgba(255, 255, 255, 0.06);
+      color: #fff;
+    }
+    .checks input, .switch input { width: 16px; height: 16px; accent-color: var(--accent); cursor: pointer; }
+    .actions { padding-top: 20px; display: grid; gap: 10px; }
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    button {
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--ink);
+      min-height: 42px;
+      border-radius: 8px;
+      padding: 0 16px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 14px;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    button:hover {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: rgba(255, 255, 255, 0.2);
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+    }
+    button:active {
+      transform: translateY(0);
+    }
+    button:disabled { opacity: 0.55; cursor: wait; transform: none; box-shadow: none !important; }
+    button.accent {
+      background: var(--accent-grad);
+      border: none;
+      color: #020617;
+      font-weight: 700;
+      box-shadow: 0 4px 14px rgba(0, 242, 254, 0.3);
+    }
+    button.accent:hover {
+      background: linear-gradient(135deg, #00ffff 0%, #60afff 100%);
+      box-shadow: 0 6px 20px rgba(0, 242, 254, 0.45);
+    }
+    button.warning {
+      background: rgba(239, 68, 68, 0.15);
+      border-color: rgba(239, 68, 68, 0.3);
+      color: #f87171;
+    }
+    button.warning:hover {
+      background: rgba(239, 68, 68, 0.25);
+      border-color: rgba(239, 68, 68, 0.5);
+    }
+    button.active {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: rgba(0, 242, 254, 0.08);
+      box-shadow: 0 0 16px rgba(0, 242, 254, 0.15);
+    }
     .toolbar {
       display: grid;
       grid-template-columns: 1fr auto auto auto;
@@ -2004,41 +2502,91 @@ INDEX_HTML = r"""<!doctype html>
       padding-bottom: 16px;
       margin-bottom: 16px;
     }
-    .status { min-height: 42px; display: flex; align-items: center; color: var(--muted); font-size: 14px; }
-    .metrics { display: grid; grid-template-columns: repeat(4, minmax(120px, 1fr)); gap: 10px; margin-bottom: 16px; }
-    .metric { border: 1px solid var(--line); background: rgba(25, 29, 23, 0.9); border-radius: 8px; padding: 12px; min-height: 74px; }
-    .metric b { display: block; font-size: 26px; line-height: 1; }
-    .metric span { color: var(--muted); font-size: 12px; text-transform: uppercase; font-weight: 750; }
-    .map-shell { border: 1px solid var(--line); border-radius: 8px; overflow: hidden; height: 360px; margin-bottom: 16px; background: #0b0d0a; }
+    .status { min-height: 42px; display: flex; align-items: center; color: var(--muted); font-size: 14.5px; }
+    .metrics { display: grid; grid-template-columns: repeat(4, minmax(120px, 1fr)); gap: 12px; margin-bottom: 16px; }
+    .metric {
+      border: 1px solid var(--line);
+      background: rgba(20, 23, 38, 0.6);
+      backdrop-filter: var(--glass-blur);
+      border-radius: 12px;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      transition: all 0.2s ease;
+    }
+    .metric:hover {
+      transform: translateY(-2px);
+      border-color: rgba(255, 255, 255, 0.15);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+    }
+    .metric b { display: block; font-size: 28px; line-height: 1.1; font-family: 'Outfit', sans-serif; font-weight: 700; color: var(--ink); }
+    .metric span { color: var(--muted); font-size: 10px; text-transform: uppercase; font-weight: 700; letter-spacing: 0.08em; margin-top: 4px; }
+    .map-shell { border: 1px solid var(--line); border-radius: 12px; overflow: hidden; height: 360px; margin-bottom: 16px; background: #0c0e17; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3); }
     #map { width: 100%; height: 100%; }
-    .leaflet-container { background: #0b0d0a; color: #11130f; font-family: inherit; }
-    .results { display: grid; gap: 10px; }
+    .leaflet-container { background: #0c0e17; color: #f3f4f6; font-family: inherit; }
+    .results { display: grid; gap: 12px; }
+    
     .listing {
       border: 1px solid var(--line);
-      background: rgba(25, 29, 23, 0.94);
-      border-radius: 8px;
-      padding: 14px;
+      background: rgba(20, 23, 38, 0.45);
+      backdrop-filter: var(--glass-blur);
+      border-radius: 12px;
+      padding: 18px;
       display: grid;
-      gap: 10px;
-      box-shadow: 0 10px 22px rgba(0, 0, 0, 0.18);
+      gap: 12px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
       cursor: default;
     }
-    .listing.active { border-color: var(--accent-2); box-shadow: inset 4px 0 0 var(--accent-2), 0 10px 22px rgba(224, 163, 58, 0.14); }
-    .listing.new { border-color: var(--accent); box-shadow: inset 4px 0 0 var(--accent), 0 10px 22px rgba(73, 197, 162, 0.13); }
-    .listing.favorite { border-color: rgba(224, 163, 58, 0.62); }
-    .listing h2 { margin: 0; font-size: 17px; line-height: 1.25; }
-    .title-line { display: flex; align-items: flex-start; gap: 10px; }
+    .listing:hover {
+      transform: translateY(-3px) scale(1.005);
+      border-color: rgba(255, 255, 255, 0.16);
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
+      background: rgba(26, 29, 47, 0.55);
+    }
+    .listing.active {
+      border-color: var(--accent-2);
+      box-shadow: inset 4px 0 0 var(--accent-2), 0 10px 24px rgba(255, 0, 127, 0.12);
+      background: rgba(30, 25, 42, 0.55);
+    }
+    .listing.new {
+      border-color: var(--accent);
+      box-shadow: inset 4px 0 0 var(--accent), 0 10px 24px rgba(0, 242, 254, 0.12);
+      background: rgba(20, 32, 44, 0.55);
+    }
+    .listing.favorite { border-color: rgba(255, 0, 127, 0.4); }
+    .listing h2 { margin: 0; font-size: 18px; line-height: 1.3; font-weight: 600; font-family: 'Plus Jakarta Sans', sans-serif; }
+    .title-line { display: flex; align-items: flex-start; gap: 12px; }
     .title-line h2 { flex: 1; }
     .favorite-toggle {
       flex: 0 0 32px;
       width: 32px;
       min-height: 32px;
       padding: 0;
-      color: #f5d394;
-      font-size: 19px;
+      color: #9ca3af;
+      font-size: 20px;
       line-height: 1;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.03);
+      cursor: pointer;
+      transition: all 0.2s ease;
     }
-    .favorite-toggle.active { border-color: var(--accent-2); background: rgba(224, 163, 58, 0.18); color: #ffd56d; }
+    .favorite-toggle:hover {
+      border-color: var(--accent-2);
+      color: var(--accent-2);
+      background: rgba(255, 0, 127, 0.08);
+    }
+    .favorite-toggle.active {
+      border-color: var(--accent-2);
+      background: rgba(255, 0, 127, 0.15);
+      color: #ff007f;
+      box-shadow: 0 0 12px rgba(255, 0, 127, 0.25);
+    }
     .num-badge {
       flex: 0 0 auto;
       min-width: 28px;
@@ -2046,9 +2594,9 @@ INDEX_HTML = r"""<!doctype html>
       border-radius: 999px;
       display: grid;
       place-items: center;
-      background: var(--accent-2);
-      color: #11130f;
-      font-weight: 900;
+      background: var(--accent-grad);
+      color: #020617;
+      font-weight: 800;
       font-size: 13px;
     }
     .map-pin {
@@ -2058,40 +2606,45 @@ INDEX_HTML = r"""<!doctype html>
       display: grid;
       place-items: center;
       background: var(--accent-2);
-      color: #11130f;
-      border: 2px solid #f1efe4;
-      box-shadow: 0 8px 18px rgba(0, 0, 0, 0.34);
-      font: 900 13px Bahnschrift, "Segoe UI", sans-serif;
+      color: #fff;
+      border: 2px solid #fff;
+      box-shadow: 0 8px 18px rgba(0, 0, 0, 0.5);
+      font: 800 13px 'Plus Jakarta Sans', sans-serif;
     }
-    .map-pin.new { background: var(--accent); }
-    .map-pin.approx { background: #6f7780; color: #f7f5ea; }
-    .photo-strip { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
-    .photo-strip { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); }
+    .map-pin.new { background: var(--accent); color: #020617; }
+    .map-pin.approx { background: #4b5563; color: #cbd5e1; }
+    
+    .photo-strip { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 8px; }
     .photo-thumb {
       border: 0;
       padding: 0;
       background: transparent;
       cursor: zoom-in;
-      border-radius: 6px;
+      border-radius: 8px;
       overflow: hidden;
+      transition: transform 0.2s ease;
+    }
+    .photo-thumb:hover {
+      transform: scale(1.03);
     }
     .photo-thumb img {
       width: 100%;
       aspect-ratio: 4 / 3;
       object-fit: cover;
-      border-radius: 6px;
+      border-radius: 8px;
       border: 1px solid var(--line);
-      background: #0b0d0a;
+      background: #090a0f;
       display: block;
     }
     .photo-viewer {
       position: fixed;
       inset: 0;
-      background: rgba(8, 10, 8, 0.84);
+      background: rgba(4, 5, 10, 0.9);
+      backdrop-filter: blur(16px);
       display: none;
       align-items: center;
       justify-content: center;
-      z-index: 1000;
+      z-index: 3000;
       padding: 20px;
     }
     .photo-viewer.open { display: flex; }
@@ -2100,7 +2653,7 @@ INDEX_HTML = r"""<!doctype html>
       max-width: min(96vw, 1280px);
       max-height: 92vh;
       display: grid;
-      gap: 8px;
+      gap: 12px;
       justify-items: end;
     }
     .photo-viewer-stage {
@@ -2111,103 +2664,159 @@ INDEX_HTML = r"""<!doctype html>
     }
     .photo-viewer img {
       max-width: 96vw;
-      max-height: 82vh;
+      max-height: 80vh;
       object-fit: contain;
-      border-radius: 10px;
-      box-shadow: 0 18px 56px rgba(0, 0, 0, 0.5);
-      background: #0b0d0a;
+      border-radius: 12px;
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.6);
+      background: #000;
     }
     .photo-nav {
       position: absolute;
       top: 50%;
       transform: translateY(-50%);
-      border: 1px solid var(--line);
-      background: rgba(25, 29, 23, 0.9);
-      color: var(--ink);
-      width: 46px;
-      height: 46px;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      background: rgba(20, 23, 38, 0.85);
+      backdrop-filter: blur(8px);
+      color: #fff;
+      width: 48px;
+      height: 48px;
       border-radius: 999px;
       cursor: pointer;
       display: grid;
       place-items: center;
       font-size: 24px;
       line-height: 1;
-      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.35);
+      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.5);
+      transition: all 0.2s ease;
     }
-    .photo-nav:hover { border-color: var(--accent-2); }
-    .photo-nav.prev { left: -12px; }
-    .photo-nav.next { right: -12px; }
+    .photo-nav:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: rgba(20, 23, 38, 0.95);
+      transform: translateY(-50%) scale(1.08);
+    }
+    .photo-nav.prev { left: 16px; }
+    .photo-nav.next { right: 16px; }
     .photo-counter {
       justify-self: center;
-      color: var(--soft);
+      color: var(--muted);
       font-size: 12px;
-      font-weight: 750;
-      letter-spacing: 0;
+      font-weight: 700;
+      letter-spacing: 0.05em;
       text-transform: uppercase;
     }
     .photo-viewer-close {
-      border: 1px solid var(--line);
-      background: rgba(25, 29, 23, 0.95);
-      color: var(--ink);
-      min-width: 38px;
-      min-height: 38px;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      background: rgba(20, 23, 38, 0.85);
+      color: #fff;
+      width: 40px;
+      height: 40px;
       border-radius: 999px;
       cursor: pointer;
-      font-size: 22px;
+      display: grid;
+      place-items: center;
+      font-size: 24px;
       line-height: 1;
+      transition: all 0.2s ease;
     }
-    .description { color: var(--soft); font-size: 13px; line-height: 1.45; white-space: pre-wrap; }
-    .cost-box { border: 1px solid rgba(224, 163, 58, 0.38); background: rgba(224, 163, 58, 0.08); border-radius: 6px; padding: 10px; display: grid; gap: 6px; }
-    .cost-title { color: #f5d394; font-size: 12px; font-weight: 800; text-transform: uppercase; }
-    .cost-item { color: var(--soft); font-size: 12px; line-height: 1.35; }
-    .facts { display: flex; flex-wrap: wrap; gap: 7px; }
-    .fact { border: 1px solid var(--line); border-radius: 999px; padding: 5px 9px; font-size: 12px; background: #12150f; color: var(--soft); }
+    .photo-viewer-close:hover {
+      border-color: var(--danger);
+      color: var(--danger);
+      transform: scale(1.08);
+    }
+    .description { color: var(--soft); font-size: 13.5px; line-height: 1.5; white-space: pre-wrap; }
+    .cost-box {
+      border: 1px solid rgba(0, 242, 254, 0.15);
+      background: rgba(0, 242, 254, 0.03);
+      border-radius: 8px;
+      padding: 12px;
+      display: grid;
+      gap: 6px;
+    }
+    .cost-title { color: var(--accent); font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; }
+    .cost-item { color: var(--soft); font-size: 12.5px; line-height: 1.4; }
+    
+    .facts { display: flex; flex-wrap: wrap; gap: 8px; }
+    .fact {
+      border: 1px solid var(--line);
+      border-radius: 99px;
+      padding: 5px 12px;
+      font-size: 12px;
+      background: rgba(255, 255, 255, 0.03);
+      color: var(--soft);
+      font-weight: 500;
+    }
     .listing-actions { display: flex; justify-content: flex-end; }
-    .listing-actions button { min-height: 34px; color: var(--accent); }
+    .listing-actions button { min-height: 36px; color: var(--accent); border-color: rgba(0, 242, 254, 0.2); background: rgba(0, 242, 254, 0.03); }
+    .listing-actions button:hover { border-color: var(--accent); background: rgba(0, 242, 254, 0.1); color: #fff; }
     .empty {
       border: 1px dashed var(--line);
-      border-radius: 8px;
+      border-radius: 12px;
       min-height: 180px;
       display: grid;
       place-items: center;
       color: var(--muted);
       text-align: center;
       padding: 28px;
-      background: rgba(25, 29, 23, 0.64);
+      background: rgba(20, 23, 38, 0.3);
     }
-    .error { color: var(--danger); font-weight: 750; }
+    .error { color: var(--danger); font-weight: 700; }
     .hint { color: var(--muted); font-size: 12px; line-height: 1.35; margin-top: -4px; }
+    
     @media (max-width: 960px) {
-      .shell { grid-template-columns: 1fr; }
-      aside, main { max-height: none; }
+      .shell { grid-template-columns: 1fr; height: auto; }
+      aside, main { height: auto; overflow-y: visible; }
       aside { border-right: 0; border-bottom: 1px solid var(--line); }
       .toolbar, .metrics { grid-template-columns: 1fr; }
     }
     @media (max-width: 540px) {
       body { overflow-x: hidden; }
       .shell, aside, main, .field, .grid > *, .row > *, button, input, select { min-width: 0; }
-      .stamp { display: none; }
-      .grid, .row, .category-choice { grid-template-columns: 1fr; }
+      .grid, .row { grid-template-columns: 1fr; }
       .checks { grid-template-columns: 1fr 1fr; }
       .hint { overflow-wrap: anywhere; }
-      aside, main { padding: 16px; }
+      aside, main { padding: 18px; }
       .map-shell { height: 300px; }
+      .top-header { padding: 0 8px; gap: 8px; }
+      .header-brand h1 { font-size: 15px; }
+      .header-logo { width: 22px; height: 22px; }
+      .category-choice a { min-height: 36px; padding: 0 8px; font-size: 12.5px; }
+      .settings-btn { padding: 0 8px; font-size: 12.5px; }
+    }
+    @media (max-width: 480px) {
+      .header-brand h1 { display: none; }
     }
   </style>
 </head>
 <body>
+  <header class="top-header">
+    <div class="header-brand" onclick="window.location.href='/'">
+      <svg class="header-logo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 2a10 10 0 1 0 10 10H12V2z" fill="rgba(73, 197, 162, 0.15)"></path>
+        <circle cx="12" cy="12" r="10" stroke="var(--line)"></circle>
+        <circle cx="12" cy="12" r="6" stroke="var(--line)"></circle>
+        <circle cx="12" cy="12" r="2" fill="var(--accent)"></circle>
+        <line x1="12" y1="12" x2="22" y2="12" stroke="var(--accent)" stroke-width="2.5"></line>
+      </svg>
+      <h1>poland scanner</h1>
+    </div>
+    <div class="header-actions">
+      <div class="category-choice">
+        <a href="/home" data-value="home">Home</a>
+        <a href="/car" data-value="car">Car</a>
+      </div>
+      <button type="button" id="openSettings" class="settings-btn">⚙️ Settings</button>
+    </div>
+  </header>
   <div class="shell">
     <aside>
-      <div class="brand">
-        <h1>home-scanner</h1>
-        <div class="stamp">dark mode</div>
-      </div>
       <form id="filters">
-        <div class="section">
-          <div class="section-title">Scan type</div>
-          <div class="category-choice">
-            <label><input type="radio" name="category" value="home"> Home</label>
-            <label><input type="radio" name="category" value="car"> Car</label>
+
+        <div class="section car-only">
+          <div class="section-title">Site Selection</div>
+          <div class="checks two">
+            <label><input type="checkbox" name="sites" value="olx" checked> OLX</label>
+            <label><input type="checkbox" name="sites" value="otomoto" checked> Otomoto</label>
           </div>
         </div>
 
@@ -2217,22 +2826,19 @@ INDEX_HTML = r"""<!doctype html>
             <div class="field"><label for="city_slug">City</label><select id="city_slug"></select></div>
             <div class="field"><label for="district_id">District / area</label><select id="district_id"><option value="">All districts</option></select></div>
           </div>
-          <div class="field"><label for="address">Around address</label><input id="address" placeholder="Rynek Główny 1"></div>
-          <div class="grid">
+          <div class="field home-only"><label for="address">Around address</label><input id="address" placeholder="Rynek Główny 1"></div>
+          <div class="grid home-only">
             <div class="field"><label for="radius_km">Radius km</label><input id="radius_km" inputmode="decimal" placeholder="5"></div>
             <div class="field"><label>&nbsp;</label><button class="warning" type="button" id="geocode">Find address</button></div>
           </div>
-          <label class="switch"><input type="checkbox" id="apply_radius_filter"> Apply address radius filter</label>
+          <label class="switch home-only"><input type="checkbox" id="apply_radius_filter"> Apply address radius filter</label>
           <input type="hidden" id="center_lat"><input type="hidden" id="center_lon">
-          <div class="hint" id="addressHint">Geocode an address, then enable radius filtering.</div>
+          <div class="hint home-only" id="addressHint">Geocode an address, then enable radius filtering.</div>
         </div>
 
         <div class="section">
           <div class="section-title">OLX filters</div>
-          <div class="grid">
-            <div class="field"><label for="owner_type">Seller type</label><select id="owner_type"><option value="all">All</option><option value="private">Private</option><option value="business">Business</option></select></div>
-            <div class="field"><label for="sort">Sort</label><select id="sort"><option value="known_total:asc">Known total: cheapest first</option><option value="filter_float_price:asc">OLX price: cheapest first</option><option value="filter_float_price:desc">OLX price: most expensive first</option><option value="created_at:desc">Newest listings</option></select></div>
-          </div>
+          <div class="field"><label for="owner_type">Seller type</label><select id="owner_type"><option value="all">All</option><option value="private">Private</option><option value="business">Business</option></select></div>
           <div class="field"><label for="query">Search query</label><input id="query" placeholder="metro, balcony, garage"></div>
           <div class="grid home-only">
             <div class="field"><label for="price_from">Min price</label><input id="price_from" inputmode="numeric"></div>
@@ -2241,13 +2847,38 @@ INDEX_HTML = r"""<!doctype html>
             <div class="field"><label for="area_to">Max m2</label><input id="area_to" inputmode="decimal"></div>
           </div>
           <div class="grid car-only">
+            <div class="field">
+              <label for="make">Make</label>
+              <select id="make"></select>
+              <input id="make_custom" class="hidden-input" placeholder="Type custom make...">
+            </div>
+            <div class="field">
+              <label for="model">Model</label>
+              <select id="model"></select>
+              <input id="model_custom" class="hidden-input" placeholder="Type custom model...">
+            </div>
+          </div>
+          <div class="field car-only">
+            <label for="generation">Generation / Type</label>
+            <select id="generation"></select>
+            <input id="generation_custom" class="hidden-input" placeholder="Type custom generation...">
+          </div>
+          <div class="grid car-only">
             <div class="field"><label for="car_price_from">Min price</label><input id="car_price_from" inputmode="numeric"></div>
             <div class="field"><label for="car_price_to">Max price</label><input id="car_price_to" inputmode="numeric"></div>
             <div class="field"><label for="year_from">Min year</label><input id="year_from" inputmode="numeric"></div>
             <div class="field"><label for="year_to">Max year</label><input id="year_to" inputmode="numeric"></div>
             <div class="field"><label for="mileage_from">Min km</label><input id="mileage_from" inputmode="numeric"></div>
             <div class="field"><label for="mileage_to">Max km</label><input id="mileage_to" inputmode="numeric"></div>
+            <div class="field"><label for="enginesize_from">Min engine cm³</label><input id="enginesize_from" inputmode="numeric"></div>
+            <div class="field"><label for="enginesize_to">Max engine cm³</label><input id="enginesize_to" inputmode="numeric"></div>
+            <div class="field"><label for="enginepower_from">Min power HP</label><input id="enginepower_from" inputmode="numeric"></div>
+            <div class="field"><label for="enginepower_to">Max power HP</label><input id="enginepower_to" inputmode="numeric"></div>
           </div>
+          <div class="field car-only"><label>Fuel type</label><div class="checks"><label><input type="checkbox" name="petrol" value="petrol"> Petrol</label><label><input type="checkbox" name="petrol" value="diesel"> Diesel</label><label><input type="checkbox" name="petrol" value="lpg"> LPG</label><label><input type="checkbox" name="petrol" value="hybrid"> Hybrid</label><label><input type="checkbox" name="petrol" value="electric"> Electric</label><label><input type="checkbox" name="petrol" value="cng"> CNG</label></div></div>
+          <div class="field car-only"><label>Transmission</label><div class="checks two"><label><input type="checkbox" name="transmission" value="manual"> Manual</label><label><input type="checkbox" name="transmission" value="automatic"> Automatic</label></div></div>
+          <div class="field car-only"><label>Condition</label><div class="checks two"><label><input type="checkbox" name="condition" value="notdamaged"> Undamaged</label><label><input type="checkbox" name="condition" value="damaged"> Damaged</label></div></div>
+          <div class="field car-only"><label>Body type</label><div class="checks"><label><input type="checkbox" name="car_body" value="sedan"> Sedan</label><label><input type="checkbox" name="car_body" value="combi"> Combi</label><label><input type="checkbox" name="car_body" value="hatchback"> Hatchback</label><label><input type="checkbox" name="car_body" value="suv"> SUV</label><label><input type="checkbox" name="car_body" value="cabriolet"> Cabriolet</label><label><input type="checkbox" name="car_body" value="coupe"> Coupe</label><label><input type="checkbox" name="car_body" value="minivan"> Minivan</label><label><input type="checkbox" name="car_body" value="pickup"> Pickup</label></div></div>
           <div class="field home-only"><label>Room count</label><div class="checks"><label><input type="checkbox" name="rooms" value="one"> 1</label><label><input type="checkbox" name="rooms" value="two"> 2</label><label><input type="checkbox" name="rooms" value="three"> 3</label><label><input type="checkbox" name="rooms" value="four"> 4+</label></div></div>
           <div class="field home-only"><label>Furnishing</label><div class="checks two"><label><input type="checkbox" name="furniture" value="yes"> Furnished</label><label><input type="checkbox" name="furniture" value="no"> Unfurnished</label></div></div>
           <label class="switch"><input type="checkbox" id="only_with_photo"> Only listings with photos</label>
@@ -2280,11 +2911,19 @@ INDEX_HTML = r"""<!doctype html>
       </form>
     </aside>
     <main>
-      <div class="toolbar"><div class="status" id="status">Choose filters and press Scan.</div><button type="button" id="showAll">Show all</button><button type="button" id="showNew">New only</button><button type="button" id="showFavorites">Favorites</button></div>
+      <div class="toolbar">
+        <div class="status" id="status">Choose filters and press Scan.</div>
+        <select id="sort" class="toolbar-sort"></select>
+        <button type="button" id="toggleMap" class="car-only">Show Map</button>
+        <button type="button" id="showAll">Show all</button>
+        <button type="button" id="showNew">New only</button>
+        <button type="button" id="showFavorites">Favorites</button>
+      </div>
       <div class="metrics"><div class="metric"><b id="metricTotal">0</b><span>matches</span></div><div class="metric"><b id="metricShown">0</b><span>shown</span></div><div class="metric"><b id="metricNew">0</b><span>new</span></div><div class="metric"><b id="metricMode">All</b><span>mode</span></div></div>
       <div class="map-shell"><div id="map"></div></div>
       <div class="results" id="results"><div class="empty">No scan has been run yet.</div></div>
     </main>
+  </div>
   </div>
   <div class="photo-viewer" id="photoViewer" aria-hidden="true">
     <div class="photo-viewer-panel" role="dialog" aria-modal="true" aria-label="Enlarged photo">
@@ -2297,24 +2936,525 @@ INDEX_HTML = r"""<!doctype html>
       <div class="photo-counter" id="photoCounter"></div>
     </div>
   </div>
+  <div class="modal-overlay" id="settingsModal" aria-hidden="true">
+    <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
+      <div class="modal-header">
+        <h2 id="settingsTitle">⚙️ Settings</h2>
+        <button type="button" class="modal-close" id="closeSettings" aria-label="Close">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="section-title">Telegram Integration</div>
+        <div class="field">
+          <label for="settings_bot_token">Bot Token</label>
+          <input type="password" id="settings_bot_token" placeholder="Enter bot token">
+        </div>
+        <div class="field">
+          <label for="settings_chat_id">Chat ID</label>
+          <input type="text" id="settings_chat_id" placeholder="Enter chat ID (e.g. -100...)">
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="settings_telegram_enabled">
+          Enable Telegram notifications for periodic scans
+        </label>
+        <div class="settings-actions">
+          <button type="button" class="btn warning" id="testTelegram">Test Connection</button>
+          <button type="button" class="btn primary" id="saveSettings">Save Settings</button>
+        </div>
+        <div class="settings-status" id="settingsStatus"></div>
+      </div>
+    </div>
+  </div>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>
     const $ = (id) => document.getElementById(id);
+        const CAR_DATA = {
+      "": { label: "All makes", models: {} },
+      "audi": {
+        label: "Audi",
+        models: {
+          "": { label: "All models", generations: {} },
+          "a3": {
+            label: "A3",
+            generations: {
+              "": "All generations",
+              "8y": "8Y (2020 - )",
+              "8v": "8V (2012 - 2020)",
+              "8p": "8P (2003 - 2013)",
+              "8l": "8L (1996 - 2003)"
+            }
+          },
+          "a4": {
+            label: "A4",
+            generations: {
+              "": "All generations",
+              "b9": "B9 (2015 - )",
+              "b8": "B8 (2007 - 2015)",
+              "b7": "B7 (2004 - 2008)",
+              "b6": "B6 (2000 - 2004)",
+              "b5": "B5 (1994 - 2001)"
+            }
+          },
+          "a6": {
+            label: "A6",
+            generations: {
+              "": "All generations",
+              "c8": "C8 (2018 - )",
+              "c7": "C7 (2011 - 2018)",
+              "c6": "C6 (2004 - 2011)",
+              "c5": "C5 (1997 - 2004)"
+            }
+          },
+          "a8": {
+            label: "A8",
+            generations: {
+              "": "All generations",
+              "d5": "D5 (2017 - )",
+              "d4": "D4 (2010 - 2017)",
+              "d3": "D3 (2002 - 2010)",
+              "d2": "D2 (1994 - 2002)"
+            }
+          },
+          "q3": { label: "Q3", generations: { "": "All generations" } },
+          "q5": {
+            label: "Q5",
+            generations: {
+              "": "All generations",
+              "fy": "FY (2016 - )",
+              "8r": "8R (2008 - 2016)"
+            }
+          },
+          "q7": { label: "Q7", generations: { "": "All generations" } },
+          "tt": {
+            label: "TT",
+            generations: {
+              "": "All generations",
+              "8s": "8S (2014 - )",
+              "8j": "8J (2006 - 2014)",
+              "8n": "8N (1998 - 2006)"
+            }
+          }
+        }
+      },
+      "bmw": {
+        label: "BMW",
+        models: {
+          "": { label: "All models", generations: {} },
+          "seria-1": {
+            label: "Seria 1",
+            generations: {
+              "": "All generations",
+              "f40": "F40 (2019 - )",
+              "f20": "F20 (2011 - 2019)",
+              "e87": "E87 (2004 - 2013)"
+            }
+          },
+          "seria-3": {
+            label: "Seria 3",
+            generations: {
+              "": "All generations",
+              "g20": "G20 (2018 - )",
+              "f30": "F30 (2011 - 2019)",
+              "e90": "E90 (2005 - 2013)",
+              "e46": "E46 (1998 - 2007)",
+              "e36": "E36 (1990 - 2000)"
+            }
+          },
+          "seria-5": {
+            label: "Seria 5",
+            generations: {
+              "": "All generations",
+              "g30": "G30 (2016 - )",
+              "f10": "F10 (2010 - 2017)",
+              "e60": "E60 (2003 - 2010)",
+              "e39": "E39 (1995 - 2004)",
+              "e34": "E34 (1987 - 1996)"
+            }
+          },
+          "seria-7": {
+            label: "Seria 7",
+            generations: {
+              "": "All generations",
+              "g11": "G11 (2015 - 2022)",
+              "f01": "F01 (2008 - 2015)",
+              "e65": "E65 (2001 - 2008)",
+              "e38": "E38 (1994 - 2001)"
+            }
+          },
+          "x1": { label: "X1", generations: { "": "All generations" } },
+          "x3": { label: "X3", generations: { "": "All generations" } },
+          "x5": {
+            label: "X5",
+            generations: {
+              "": "All generations",
+              "g05": "G05 (2018 - )",
+              "f15": "F15 (2013 - 2018)",
+              "e70": "E70 (2006 - 2013)",
+              "e53": "E53 (1999 - 2006)"
+            }
+          },
+          "x6": { label: "X6", generations: { "": "All generations" } }
+        }
+      },
+      "citroen": {
+        label: "Citroën",
+        models: {
+          "": { label: "All models", generations: {} },
+          "c1": { label: "C1", generations: { "": "All generations" } },
+          "c3": { label: "C3", generations: { "": "All generations" } },
+          "c4": { label: "C4", generations: { "": "All generations" } },
+          "c5": { label: "C5", generations: { "": "All generations" } },
+          "berlingo": { label: "Berlingo", generations: { "": "All generations" } },
+          "c4-picasso": { label: "C4 Picasso", generations: { "": "All generations" } }
+        }
+      },
+      "dacia": {
+        label: "Dacia",
+        models: {
+          "": { label: "All models", generations: {} },
+          "duster": { label: "Duster", generations: { "": "All generations" } },
+          "sandero": { label: "Sandero", generations: { "": "All generations" } },
+          "logan": { label: "Logan", generations: { "": "All generations" } },
+          "lodgy": { label: "Lodgy", generations: { "": "All generations" } }
+        }
+      },
+      "fiat": {
+        label: "Fiat",
+        models: {
+          "": { label: "All models", generations: {} },
+          "500": { label: "500", generations: { "": "All generations" } },
+          "panda": { label: "Panda", generations: { "": "All generations" } },
+          "punto": { label: "Punto", generations: { "": "All generations" } },
+          "tipo": { label: "Tipo", generations: { "": "All generations" } },
+          "ducato": { label: "Ducato", generations: { "": "All generations" } },
+          "doblo": { label: "Doblo", generations: { "": "All generations" } }
+        }
+      },
+      "ford": {
+        label: "Ford",
+        models: {
+          "": { label: "All models", generations: {} },
+          "fiesta": { label: "Fiesta", generations: { "": "All generations" } },
+          "focus": {
+            label: "Focus",
+            generations: {
+              "": "All generations",
+              "focus-mk4": "Focus Mk4 (2018 - )",
+              "focus-mk3": "Focus Mk3 (2011 - 2018)",
+              "focus-mk2": "Focus Mk2 (2004 - 2011)",
+              "focus-mk1": "Focus Mk1 (1998 - 2004)"
+            }
+          },
+          "mondeo": {
+            label: "Mondeo",
+            generations: {
+              "": "All generations",
+              "mk5": "Mondeo Mk5 (2014 - 2022)",
+              "mk4": "Mondeo Mk4 (2007 - 2014)",
+              "mk3": "Mondeo Mk3 (2000 - 2007)"
+            }
+          },
+          "mustang": { label: "Mustang", generations: { "": "All generations" } },
+          "kuga": { label: "Kuga", generations: { "": "All generations" } },
+          "s-max": { label: "S-Max", generations: { "": "All generations" } },
+          "galaxy": { label: "Galaxy", generations: { "": "All generations" } }
+        }
+      },
+      "honda": {
+        label: "Honda",
+        models: {
+          "": { label: "All models", generations: {} },
+          "civic": { label: "Civic", generations: { "": "All generations" } },
+          "accord": { label: "Accord", generations: { "": "All generations" } },
+          "cr-v": { label: "CR-V", generations: { "": "All generations" } },
+          "jazz": { label: "Jazz", generations: { "": "All generations" } },
+          "hr-v": { label: "HR-V", generations: { "": "All generations" } }
+        }
+      },
+      "hyundai": {
+        label: "Hyundai",
+        models: {
+          "": { label: "All models", generations: {} },
+          "i10": { label: "i10", generations: { "": "All generations" } },
+          "i20": { label: "i20", generations: { "": "All generations" } },
+          "i30": { label: "i30", generations: { "": "All generations" } },
+          "tucson": { label: "Tucson", generations: { "": "All generations" } },
+          "santa-fe": { label: "Santa Fe", generations: { "": "All generations" } },
+          "kona": { label: "Kona", generations: { "": "All generations" } }
+        }
+      },
+      "kia": {
+        label: "Kia",
+        models: {
+          "": { label: "All models", generations: {} },
+          "sportage": { label: "Sportage", generations: { "": "All generations" } },
+          "ceed": { label: "Ceed", generations: { "": "All generations" } },
+          "rio": { label: "Rio", generations: { "": "All generations" } },
+          "picanto": { label: "Picanto", generations: { "": "All generations" } },
+          "sorento": { label: "Sorento", generations: { "": "All generations" } },
+          "stonic": { label: "Stonic", generations: { "": "All generations" } }
+        }
+      },
+      "mazda": {
+        label: "Mazda",
+        models: {
+          "": { label: "All models", generations: {} },
+          "2": { label: "2", generations: { "": "All generations" } },
+          "3": { label: "3", generations: { "": "All generations" } },
+          "6": { label: "6", generations: { "": "All generations" } },
+          "cx-5": { label: "CX-5", generations: { "": "All generations" } },
+          "cx-3": { label: "CX-3", generations: { "": "All generations" } },
+          "mx-5": { label: "MX-5", generations: { "": "All generations" } }
+        }
+      },
+      "mercedes-benz": {
+        label: "Mercedes-Benz",
+        models: {
+          "": { label: "All models", generations: {} },
+          "klasa-a": { label: "Klasa A", generations: { "": "All generations" } },
+          "klasa-c": { label: "Klasa C", generations: { "": "All generations" } },
+          "klasa-e": { label: "Klasa E", generations: { "": "All generations" } },
+          "klasa-s": { label: "Klasa S", generations: { "": "All generations" } },
+          "cla": { label: "CLA", generations: { "": "All generations" } },
+          "gla": { label: "GLA", generations: { "": "All generations" } },
+          "glc": { label: "GLC", generations: { "": "All generations" } },
+          "gle": { label: "GLE", generations: { "": "All generations" } },
+          "sprinter": { label: "Sprinter", generations: { "": "All generations" } }
+        }
+      },
+      "mitsubishi": {
+        label: "Mitsubishi",
+        models: {
+          "": { label: "All models", generations: {} },
+          "lancer": { label: "Lancer", generations: { "": "All generations" } },
+          "outlander": { label: "Outlander", generations: { "": "All generations" } },
+          "colt": { label: "Colt", generations: { "": "All generations" } },
+          "asx": { label: "ASX", generations: { "": "All generations" } },
+          "pajero": { label: "Pajero", generations: { "": "All generations" } }
+        }
+      },
+      "nissan": {
+        label: "Nissan",
+        models: {
+          "": { label: "All models", generations: {} },
+          "qashqai": { label: "Qashqai", generations: { "": "All generations" } },
+          "juke": { label: "Juke", generations: { "": "All generations" } },
+          "micra": { label: "Micra", generations: { "": "All generations" } },
+          "x-trail": { label: "X-Trail", generations: { "": "All generations" } },
+          "leaf": { label: "Leaf", generations: { "": "All generations" } },
+          "note": { label: "Note", generations: { "": "All generations" } }
+        }
+      },
+      "opel": {
+        label: "Opel",
+        models: {
+          "": { label: "All models", generations: {} },
+          "astra": {
+            label: "Astra",
+            generations: {
+              "": "All generations",
+              "astra-k": "Astra K (2015 - 2021)",
+              "astra-j": "Astra J (2009 - 2015)",
+              "astra-h": "Astra H (2004 - 2014)",
+              "astra-g": "Astra G (1998 - 2009)"
+            }
+          },
+          "corsa": {
+            label: "Corsa",
+            generations: {
+              "": "All generations",
+              "corsa-f": "Corsa F (2019 - )",
+              "corsa-e": "Corsa E (2014 - 2019)",
+              "corsa-d": "Corsa D (2006 - 2014)",
+              "corsa-c": "Corsa C (2000 - 2006)"
+            }
+          },
+          "insignia": {
+            label: "Insignia",
+            generations: {
+              "": "All generations",
+              "insignia-b": "Insignia B (2017 - 2022)",
+              "insignia-a": "Insignia A (2008 - 2017)"
+            }
+          },
+          "meriva": { label: "Meriva", generations: { "": "All generations" } },
+          "mokka": { label: "Mokka", generations: { "": "All generations" } },
+          "vectra": { label: "Vectra", generations: { "": "All generations" } },
+          "zafira": { label: "Zafira", generations: { "": "All generations" } }
+        }
+      },
+      "peugeot": {
+        label: "Peugeot",
+        models: {
+          "": { label: "All models", generations: {} },
+          "206": { label: "206", generations: { "": "All generations" } },
+          "207": { label: "207", generations: { "": "All generations" } },
+          "208": { label: "208", generations: { "": "All generations" } },
+          "307": { label: "307", generations: { "": "All generations" } },
+          "308": { label: "308", generations: { "": "All generations" } },
+          "508": { label: "508", generations: { "": "All generations" } },
+          "3008": { label: "3008", generations: { "": "All generations" } },
+          "5008": { label: "5008", generations: { "": "All generations" } }
+        }
+      },
+      "renault": {
+        label: "Renault",
+        models: {
+          "": { label: "All models", generations: {} },
+          "clio": { label: "Clio", generations: { "": "All generations" } },
+          "megane": { label: "Megane", generations: { "": "All generations" } },
+          "scenic": { label: "Scenic", generations: { "": "All generations" } },
+          "laguna": { label: "Laguna", generations: { "": "All generations" } },
+          "captur": { label: "Captur", generations: { "": "All generations" } },
+          "kadjar": { label: "Kadjar", generations: { "": "All generations" } },
+          "espace": { label: "Espace", generations: { "": "All generations" } }
+        }
+      },
+      "seat": {
+        label: "Seat",
+        models: {
+          "": { label: "All models", generations: {} },
+          "ibiza": { label: "Ibiza", generations: { "": "All generations" } },
+          "leon": { label: "Leon", generations: { "": "All generations" } },
+          "alhambra": { label: "Alhambra", generations: { "": "All generations" } },
+          "arona": { label: "Arona", generations: { "": "All generations" } },
+          "ateca": { label: "Ateca", generations: { "": "All generations" } }
+        }
+      },
+      "skoda": {
+        label: "Skoda",
+        models: {
+          "": { label: "All models", generations: {} },
+          "fabia": { label: "Fabia", generations: { "": "All generations" } },
+          "octavia": { label: "Octavia", generations: { "": "All generations" } },
+          "superb": { label: "Superb", generations: { "": "All generations" } },
+          "karoq": { label: "Karoq", generations: { "": "All generations" } },
+          "kodiaq": { label: "Kodiaq", generations: { "": "All generations" } },
+          "rapid": { label: "Rapid", generations: { "": "All generations" } }
+        }
+      },
+      "toyota": {
+        label: "Toyota",
+        models: {
+          "": { label: "All models", generations: {} },
+          "yaris": { label: "Yaris", generations: { "": "All generations" } },
+          "auris": { label: "Auris", generations: { "": "All generations" } },
+          "corolla": { label: "Corolla", generations: { "": "All generations" } },
+          "avensis": { label: "Avensis", generations: { "": "All generations" } },
+          "rav4": { label: "RAV4", generations: { "": "All generations" } },
+          "c-hr": { label: "C-HR", generations: { "": "All generations" } },
+          "prius": { label: "Prius", generations: { "": "All generations" } }
+        }
+      },
+      "volkswagen": {
+        label: "Volkswagen",
+        models: {
+          "": { label: "All models", generations: {} },
+          "golf": {
+            label: "Golf",
+            generations: {
+              "": "All generations",
+              "golf-viii": "Golf 8 (2019 - )",
+              "golf-vii": "Golf 7 (2012 - 2020)",
+              "golf-vi": "Golf 6 (2008 - 2013)",
+              "golf-v": "Golf 5 (2003 - 2009)",
+              "golf-iv": "Golf 4 (1997 - 2006)"
+            }
+          },
+          "passat": {
+            label: "Passat",
+            generations: {
+              "": "All generations",
+              "passat-b8": "Passat B8 (2014 - )",
+              "passat-b7": "Passat B7 (2010 - 2014)",
+              "passat-b6": "Passat B6 (2005 - 2010)",
+              "passat-b5": "Passat B5 (1996 - 2005)"
+            }
+          },
+          "polo": {
+            label: "Polo",
+            generations: {
+              "": "All generations",
+              "polo-vi": "Polo VI (2017 - )",
+              "polo-v": "Polo V (2009 - 2017)",
+              "polo-iv": "Polo IV (2001 - 2009)"
+            }
+          },
+          "tiguan": { label: "Tiguan", generations: { "": "All generations" } },
+          "touran": { label: "Touran", generations: { "": "All generations" } },
+          "sharan": { label: "Sharan", generations: { "": "All generations" } },
+          "caddy": { label: "Caddy", generations: { "": "All generations" } },
+          "arteon": { label: "Arteon", generations: { "": "All generations" } }
+        }
+      },
+      "volvo": {
+        label: "Volvo",
+        models: {
+          "": { label: "All models", generations: {} },
+          "c30": { label: "C30", generations: { "": "All generations" } },
+          "s40": { label: "S40", generations: { "": "All generations" } },
+          "s60": { label: "S60", generations: { "": "All generations" } },
+          "s80": { label: "S80", generations: { "": "All generations" } },
+          "v40": { label: "V40", generations: { "": "All generations" } },
+          "v60": { label: "V60", generations: { "": "All generations" } },
+          "xc60": { label: "XC60", generations: { "": "All generations" } },
+          "xc90": { label: "XC90", generations: { "": "All generations" } }
+        }
+      }
+    };
+    function populateMakes() {
+      const select = $("make");
+      const options = Object.entries(CAR_DATA).map(([slug, makeObj]) => {
+        return `<option value="${escapeAttr(slug)}">${escapeHtml(makeObj.label)}</option>`;
+      });
+      options.push('<option value="custom">Other (type custom...)</option>');
+      select.innerHTML = options.join("");
+    }
+    function updateModelsDropdown(makeSlug) {
+      const select = $("model");
+      const makeObj = CAR_DATA[makeSlug];
+      if (makeSlug === "custom" || !makeObj) {
+        select.innerHTML = '<option value="">All models</option><option value="custom">Other (type custom...)</option>';
+        updateGenerationsDropdown(makeSlug, "");
+        return;
+      }
+      const options = Object.entries(makeObj.models || {}).map(([slug, modelObj]) => {
+        if (slug === "") return `<option value="">All models</option>`;
+        return `<option value="${escapeAttr(slug)}">${escapeHtml(modelObj.label)}</option>`;
+      });
+      options.push('<option value="custom">Other (type custom...)</option>');
+      select.innerHTML = options.join("");
+      updateGenerationsDropdown(makeSlug, "");
+    }
+    function updateGenerationsDropdown(makeSlug, modelSlug) {
+      const select = $("generation");
+      const makeObj = CAR_DATA[makeSlug];
+      const modelObj = (makeObj && makeObj.models) ? makeObj.models[modelSlug] : null;
+      if (makeSlug === "custom" || modelSlug === "custom" || !modelObj || !modelObj.generations) {
+        select.innerHTML = '<option value="">All generations</option><option value="custom">Other (type custom...)</option>';
+        return;
+      }
+      const options = Object.entries(modelObj.generations || {}).map(([slug, label]) => {
+        return `<option value="${escapeAttr(slug)}">${escapeHtml(label)}</option>`;
+      });
+      options.push('<option value="custom">Other (type custom...)</option>');
+      select.innerHTML = options.join("");
+    }
     const SORT_OPTIONS = {
       home: [
-        ["known_total:asc", "Known total: cheapest first"],
-        ["filter_float_price:asc", "OLX price: cheapest first"],
-        ["filter_float_price:desc", "OLX price: most expensive first"],
-        ["created_at:desc", "Newest listings"]
+        ["known_total:asc", "Total cost (asc)"],
+        ["known_total:desc", "Total cost (desc)"],
+        ["filter_float_price:asc", "Price (asc)"],
+        ["filter_float_price:desc", "Price (desc)"],
+        ["created_at:desc", "Newest"]
       ],
       car: [
-        ["filter_float_price:asc", "OLX price: cheapest first"],
-        ["filter_float_price:desc", "OLX price: most expensive first"],
-        ["created_at:desc", "Newest listings"]
+        ["filter_float_price:asc", "Price (asc)"],
+        ["filter_float_price:desc", "Price (desc)"],
+        ["created_at:desc", "Newest"]
       ]
     };
-    const FAVORITES_KEY = "home_scanner_favorites_v1";
-    const LEGACY_FAVORITES_KEYS = ["olx_scanner_favorites_v1"];
+    const FAVORITES_KEY = "poland_scanner_favorites_v1";
+    const LEGACY_FAVORITES_KEYS = ["home_scanner_favorites_v1", "olx_scanner_favorites_v1"];
     let watchTimer = null, map = null, markerLayer = null, radiusLayer = null, cities = [];
     let activeMarkerById = new Map();
     let lastData = null, lastListings = [], renderedListingsById = new Map(), favoriteMode = false;
@@ -2324,7 +3464,7 @@ INDEX_HTML = r"""<!doctype html>
     const listToCsv = (value) => Array.isArray(value) ? value.join(",") : "";
     const valueOrNull = (id) => { const value = $(id).value.trim(); return value === "" ? null : value; };
     const selectedValues = (name) => [...document.querySelectorAll(`input[name='${name}']:checked`)].map((item) => item.value);
-    const selectedCategory = () => document.querySelector("input[name='category']:checked")?.value || "home";
+    const selectedCategory = () => document.body.dataset.category || "home";
 
     function loadFavorites() {
       try {
@@ -2355,6 +3495,11 @@ INDEX_HTML = r"""<!doctype html>
     function setCategory(category, sortValue = null) {
       const normalized = category === "car" ? "car" : "home";
       document.body.dataset.category = normalized;
+      document.body.classList.remove("show-car-map");
+      const toggleBtn = $("toggleMap");
+      if (toggleBtn) {
+        toggleBtn.textContent = "Show Map";
+      }
       document.querySelectorAll("input[name='category']").forEach((radio) => { radio.checked = radio.value === normalized; });
       const options = SORT_OPTIONS[normalized] || SORT_OPTIONS.home;
       $("sort").innerHTML = options.map(([value, label]) => `<option value="${escapeAttr(value)}">${escapeHtml(label)}</option>`).join("");
@@ -2363,26 +3508,35 @@ INDEX_HTML = r"""<!doctype html>
       if (normalized === "car") {
         $("car_price_from").value = $("price_from").value;
         $("car_price_to").value = $("price_to").value;
+        $("query").placeholder = "e.g. diesel, leather, sunroof";
+        $("keywords_any").placeholder = "automatic,leather,sunroof,webasto";
+        $("keywords_all").placeholder = "first owner,accident free,polish salon";
+        $("exclude_keywords").placeholder = "damaged,broken,accident,import";
       } else {
         $("price_from").value = $("car_price_from").value;
         $("price_to").value = $("car_price_to").value || $("price_to").value;
+        $("query").placeholder = "metro, balcony, garage";
+        $("keywords_any").placeholder = "metro,balcony,tram";
+        $("keywords_all").placeholder = "direct owner";
+        $("exclude_keywords").placeholder = "room share";
       }
     }
 
     function collectPayload(extra = {}) {
+      const isCar = selectedCategory() === "car";
       return {
         category: selectedCategory(),
         city_slug: $("city_slug").value || "krakow",
         district_id: valueOrNull("district_id"),
-        address: valueOrNull("address"),
-        center_lat: valueOrNull("center_lat"),
-        center_lon: valueOrNull("center_lon"),
-        radius_km: valueOrNull("radius_km"),
+        address: isCar ? null : valueOrNull("address"),
+        center_lat: isCar ? null : valueOrNull("center_lat"),
+        center_lon: isCar ? null : valueOrNull("center_lon"),
+        radius_km: isCar ? null : valueOrNull("radius_km"),
         query: valueOrNull("query") || "",
         owner_type: $("owner_type").value,
-        sort: $("sort").value || (selectedCategory() === "home" ? "known_total:asc" : "filter_float_price:asc"),
-        price_from: selectedCategory() === "car" ? valueOrNull("car_price_from") : valueOrNull("price_from"),
-        price_to: selectedCategory() === "car" ? valueOrNull("car_price_to") : valueOrNull("price_to"),
+        sort: $("sort").value || (isCar ? "filter_float_price:asc" : "known_total:asc"),
+        price_from: isCar ? valueOrNull("car_price_from") : valueOrNull("price_from"),
+        price_to: isCar ? valueOrNull("car_price_to") : valueOrNull("price_to"),
         area_from: valueOrNull("area_from"),
         area_to: valueOrNull("area_to"),
         year_from: valueOrNull("year_from"),
@@ -2391,6 +3545,18 @@ INDEX_HTML = r"""<!doctype html>
         mileage_to: valueOrNull("mileage_to"),
         rooms: selectedValues("rooms"),
         furniture: selectedValues("furniture"),
+        make: $("make").value === "custom" ? valueOrNull("make_custom") : valueOrNull("make"),
+        model: $("model").value === "custom" ? valueOrNull("model_custom") : valueOrNull("model"),
+        generation: $("generation").value === "custom" ? valueOrNull("generation_custom") : valueOrNull("generation"),
+        sites: isCar ? selectedValues("sites") : [],
+        enginesize_from: valueOrNull("enginesize_from"),
+        enginesize_to: valueOrNull("enginesize_to"),
+        enginepower_from: valueOrNull("enginepower_from"),
+        enginepower_to: valueOrNull("enginepower_to"),
+        petrol: selectedValues("petrol"),
+        transmission: selectedValues("transmission"),
+        car_body: selectedValues("car_body"),
+        condition: selectedValues("condition"),
         only_with_photo: $("only_with_photo").checked,
         districts_any: [],
         keywords_any: csvToList($("keywords_any").value),
@@ -2400,16 +3566,27 @@ INDEX_HTML = r"""<!doctype html>
         apply_total_limit: $("apply_total_limit").checked,
         max_pages: valueOrNull("max_pages") || 2,
         scan_interval_minutes: valueOrNull("scan_interval_minutes") || 10,
-        apply_radius_filter: $("apply_radius_filter").checked,
+        apply_radius_filter: isCar ? false : $("apply_radius_filter").checked,
         hide_seen: $("hide_seen").checked,
         ...extra
       };
     }
 
     function applyConfig(config) {
+      const isCar = config.category === "car";
       setCategory(config.category || "home", config.sort || null);
       $("city_slug").value = config.city_slug || "krakow";
-      $("address").value = config.address || "Opolska 110";
+      if (isCar) {
+        $("address").value = "";
+        $("center_lat").value = "";
+        $("center_lon").value = "";
+        $("apply_radius_filter").checked = false;
+      } else {
+        $("address").value = config.address || "Opolska 110";
+        $("center_lat").value = config.center_lat ?? "";
+        $("center_lon").value = config.center_lon ?? "";
+        $("apply_radius_filter").checked = Boolean(config.apply_radius_filter);
+      }
       $("query").value = config.query || "";
       $("owner_type").value = config.owner_type || "all";
       $("price_from").value = config.price_from ?? "";
@@ -2422,16 +3599,75 @@ INDEX_HTML = r"""<!doctype html>
       $("year_to").value = config.year_to ?? "";
       $("mileage_from").value = config.mileage_from ?? "";
       $("mileage_to").value = config.mileage_to ?? "";
+
+      const knownMakes = Object.keys(CAR_DATA);
+      const makeVal = config.make ?? "";
+      if (makeVal === "") {
+        $("make").value = "";
+        $("make_custom").classList.add("hidden-input");
+      } else if (knownMakes.includes(makeVal.toLowerCase())) {
+        $("make").value = makeVal.toLowerCase();
+        $("make_custom").classList.add("hidden-input");
+      } else {
+        $("make").value = "custom";
+        $("make_custom").value = makeVal;
+        $("make_custom").classList.remove("hidden-input");
+      }
+      updateModelsDropdown($("make").value);
+
+      const modelVal = config.model ?? "";
+      const selectedMake = $("make").value;
+      const knownModels = selectedMake !== "custom" && CAR_DATA[selectedMake] ? Object.keys(CAR_DATA[selectedMake].models) : [];
+      if (modelVal === "") {
+        $("model").value = "";
+        $("model_custom").classList.add("hidden-input");
+      } else if (knownModels.includes(modelVal.toLowerCase())) {
+        $("model").value = modelVal.toLowerCase();
+        $("model_custom").classList.add("hidden-input");
+      } else {
+        $("model").value = "custom";
+        $("model_custom").value = modelVal;
+        $("model_custom").classList.remove("hidden-input");
+      }
+
+      updateGenerationsDropdown(selectedMake, $("model").value);
+
+      const generationVal = config.generation ?? "";
+      const selectedModel = $("model").value;
+      const makeValLower = $("make").value;
+      const makeObj = CAR_DATA[makeValLower];
+      const modelObj = (makeObj && makeObj.models) ? makeObj.models[selectedModel] : null;
+      const knownGenerations = (modelObj && modelObj.generations) ? Object.keys(modelObj.generations) : [];
+      if (generationVal === "") {
+        $("generation").value = "";
+        $("generation_custom").classList.add("hidden-input");
+      } else if (knownGenerations.includes(generationVal.toLowerCase())) {
+        $("generation").value = generationVal.toLowerCase();
+        $("generation_custom").classList.add("hidden-input");
+      } else {
+        $("generation").value = "custom";
+        $("generation_custom").value = generationVal;
+        $("generation_custom").classList.remove("hidden-input");
+      }
+      $("enginesize_from").value = config.enginesize_from ?? "";
+      $("enginesize_to").value = config.enginesize_to ?? "";
+      $("enginepower_from").value = config.enginepower_from ?? "";
+      $("enginepower_to").value = config.enginepower_to ?? "";
+      document.querySelectorAll("input[name='petrol']").forEach((box) => { box.checked = (config.petrol || []).includes(box.value); });
+      document.querySelectorAll("input[name='transmission']").forEach((box) => { box.checked = (config.transmission || []).includes(box.value); });
+      document.querySelectorAll("input[name='car_body']").forEach((box) => { box.checked = (config.car_body || []).includes(box.value); });
+      document.querySelectorAll("input[name='condition']").forEach((box) => { box.checked = (config.condition || []).includes(box.value); });
+      const sites = config.sites || [];
+      document.querySelectorAll("input[name='sites']").forEach((box) => {
+        box.checked = sites.length === 0 ? true : sites.includes(box.value);
+      });
       $("only_with_photo").checked = Boolean(config.only_with_photo);
       $("keywords_any").value = listToCsv(config.keywords_any);
       $("keywords_all").value = listToCsv(config.keywords_all);
       $("exclude_keywords").value = listToCsv(config.exclude_keywords);
       $("max_total_known_cost").value = config.max_total_known_cost ?? 2500;
       $("apply_total_limit").checked = Boolean(config.apply_total_limit);
-      $("center_lat").value = config.center_lat ?? "";
-      $("center_lon").value = config.center_lon ?? "";
       $("radius_km").value = config.radius_km ?? 5;
-      $("apply_radius_filter").checked = Boolean(config.apply_radius_filter);
       $("max_pages").value = config.max_pages || 2;
       $("scan_interval_minutes").value = config.scan_interval_minutes || 10;
       document.querySelectorAll("input[name='rooms']").forEach((box) => { box.checked = (config.rooms || []).includes(box.value); });
@@ -2457,6 +3693,7 @@ INDEX_HTML = r"""<!doctype html>
       } catch { $("district_id").innerHTML = `<option value="">Districts could not be loaded</option>`; }
     }
     async function geocodeAddress() {
+      if (selectedCategory() === "car") return;
       const address = valueOrNull("address");
       if (!address) {
         $("addressHint").textContent = "Enter an address before applying the radius filter.";
@@ -2675,6 +3912,14 @@ INDEX_HTML = r"""<!doctype html>
       $("hide_seen").checked = true; const minutes = Math.max(Number($("scan_interval_minutes").value || 10), 1);
       scan(); watchTimer = setInterval(() => scan(), minutes * 60 * 1000); $("watch").textContent = "Stop watching"; $("status").textContent = `New-listing scans will run every ${minutes} minute(s).`;
     }
+    $("toggleMap").addEventListener("click", () => {
+      document.body.classList.toggle("show-car-map");
+      const isVisible = document.body.classList.contains("show-car-map");
+      $("toggleMap").textContent = isVisible ? "Hide Map" : "Show Map";
+      if (isVisible && map) {
+        setTimeout(() => map.invalidateSize(), 100);
+      }
+    });
     $("scan").addEventListener("click", () => scan());
     $("save").addEventListener("click", saveConfig);
     $("resetSeen").addEventListener("click", resetSeen);
@@ -2682,6 +3927,51 @@ INDEX_HTML = r"""<!doctype html>
     $("sendTelegram").addEventListener("click", sendCurrentScanToTelegram);
     $("geocode").addEventListener("click", geocodeAddress);
     $("showAll").addEventListener("click", () => { $("hide_seen").checked = false; scan(); });
+    $("filters").addEventListener("submit", (event) => { event.preventDefault(); scan(); });
+    $("sort").addEventListener("change", () => scan());
+    $("make").addEventListener("change", () => {
+      const val = $("make").value;
+      if (val === "custom") {
+        $("make_custom").classList.remove("hidden-input");
+        $("make_custom").value = "";
+      } else {
+        $("make_custom").classList.add("hidden-input");
+      }
+      updateModelsDropdown(val);
+      $("model").value = "";
+      $("model_custom").classList.add("hidden-input");
+      $("generation").value = "";
+      $("generation_custom").classList.add("hidden-input");
+      scan();
+    });
+    $("model").addEventListener("change", () => {
+      const makeVal = $("make").value;
+      const val = $("model").value;
+      if (val === "custom") {
+        $("model_custom").classList.remove("hidden-input");
+        $("model_custom").value = "";
+      } else {
+        $("model_custom").classList.add("hidden-input");
+      }
+      updateGenerationsDropdown(makeVal, val);
+      $("generation").value = "";
+      $("generation_custom").classList.add("hidden-input");
+      scan();
+    });
+    $("generation").addEventListener("change", () => {
+      const val = $("generation").value;
+      if (val === "custom") {
+        $("generation_custom").classList.remove("hidden-input");
+        $("generation_custom").value = "";
+      } else {
+        $("generation_custom").classList.add("hidden-input");
+      }
+      scan();
+    });
+    $("make_custom").addEventListener("change", () => scan());
+    $("model_custom").addEventListener("change", () => scan());
+    $("generation_custom").addEventListener("change", () => scan());
+    document.querySelectorAll("input[name='sites']").forEach((box) => box.addEventListener("change", () => scan()));
     $("showNew").addEventListener("click", () => { $("hide_seen").checked = true; scan(); });
     $("showFavorites").addEventListener("click", () => { favoriteMode = !favoriteMode; renderCurrentListings(); });
     $("photoViewer").addEventListener("click", (event) => { if (event.target.id === "photoViewer") closePhotoViewer(); });
@@ -2693,11 +3983,135 @@ INDEX_HTML = r"""<!doctype html>
       if (event.key === "ArrowLeft") movePhoto(-1);
       if (event.key === "ArrowRight") movePhoto(1);
     });
-    document.querySelectorAll("input[name='category']").forEach((radio) => radio.addEventListener("change", async () => { setCategory(radio.value); $("center_lat").value = ""; $("center_lon").value = ""; $("district_id").value = ""; await loadDistricts(); updateMap([], null); }));
-    $("city_slug").addEventListener("change", async () => { $("center_lat").value = ""; $("center_lon").value = ""; $("addressHint").textContent = "City changed; find the address again if you want to use an address radius."; await loadDistricts(); updateMap([], null); });
-    setCategory("home");
+
+    let telegramConfig = { bot_token: "", chat_id: "", enabled: false };
+
+    $("openSettings").addEventListener("click", () => {
+      $("settingsModal").classList.add("open");
+      $("settingsModal").setAttribute("aria-hidden", "false");
+    });
+    const closeSettingsModal = () => {
+      $("settingsModal").classList.remove("open");
+      $("settingsModal").setAttribute("aria-hidden", "true");
+      $("settingsStatus").textContent = "";
+      $("settingsStatus").className = "settings-status";
+    };
+    $("closeSettings").addEventListener("click", closeSettingsModal);
+    $("settingsModal").addEventListener("click", (event) => { if (event.target.id === "settingsModal") closeSettingsModal(); });
+
+    $("testTelegram").addEventListener("click", async () => {
+      const bot_token = $("settings_bot_token").value.trim();
+      const chat_id = $("settings_chat_id").value.trim();
+      if (!bot_token || !chat_id) {
+        $("settingsStatus").textContent = "Error: Bot Token and Chat ID are required.";
+        $("settingsStatus").className = "settings-status error";
+        return;
+      }
+      $("settingsStatus").textContent = "Sending test message...";
+      $("settingsStatus").className = "settings-status";
+      setBusy(true);
+      try {
+        await api("/api/telegram/test", { bot_token, chat_id });
+        $("settingsStatus").textContent = "Success! Test message sent to your Telegram chat.";
+        $("settingsStatus").className = "settings-status success";
+      } catch (err) {
+        $("settingsStatus").textContent = "Test failed: " + err.message;
+        $("settingsStatus").className = "settings-status error";
+      } finally {
+        setBusy(false);
+      }
+    });
+
+    $("saveSettings").addEventListener("click", async () => {
+      const bot_token = $("settings_bot_token").value.trim();
+      const chat_id = $("settings_chat_id").value.trim();
+      const enabled = $("settings_telegram_enabled").checked;
+      $("settingsStatus").textContent = "Saving settings...";
+      $("settingsStatus").className = "settings-status";
+      setBusy(true);
+      try {
+        await api("/api/config/telegram", { bot_token, chat_id, enabled });
+        telegramConfig = { bot_token, chat_id, enabled };
+        $("settingsStatus").textContent = "Settings saved successfully.";
+        $("settingsStatus").className = "settings-status success";
+        setTimeout(closeSettingsModal, 1000);
+      } catch (err) {
+        $("settingsStatus").textContent = "Save failed: " + err.message;
+        $("settingsStatus").className = "settings-status error";
+      } finally {
+        setBusy(false);
+      }
+    });
+    document.querySelectorAll(".category-choice a").forEach((link) => link.addEventListener("click", async (event) => {
+      event.preventDefault();
+      const targetPath = link.getAttribute("href");
+      window.history.pushState({}, "", targetPath);
+      const category = targetPath === "/car" ? "car" : "home";
+      setCategory(category);
+      $("city_slug").value = category === "car" ? "poland" : "krakow";
+      $("sort").value = category === "car" ? "filter_float_price:asc" : "known_total:asc";
+      $("district_id").value = "";
+      if (category === "car") {
+        $("apply_radius_filter").checked = false;
+        $("address").value = "";
+        $("center_lat").value = "";
+        $("center_lon").value = "";
+      } else {
+        $("center_lat").value = "";
+        $("center_lon").value = "";
+      }
+      await loadDistricts();
+      updateMap([], null);
+    }));
+    window.addEventListener("popstate", async () => {
+      const category = window.location.pathname === "/car" ? "car" : "home";
+      setCategory(category);
+      $("city_slug").value = category === "car" ? "poland" : "krakow";
+      $("sort").value = category === "car" ? "filter_float_price:asc" : "known_total:asc";
+      if (category === "car") {
+        $("apply_radius_filter").checked = false;
+        $("address").value = "";
+        $("center_lat").value = "";
+        $("center_lon").value = "";
+      } else {
+        $("center_lat").value = "";
+        $("center_lon").value = "";
+      }
+      await loadDistricts();
+      updateMap([], null);
+    });
+    $("city_slug").addEventListener("change", async () => {
+      $("center_lat").value = "";
+      $("center_lon").value = "";
+      if (selectedCategory() !== "car") {
+        $("addressHint").textContent = "City changed; find the address again if you want to use an address radius.";
+      }
+      await loadDistricts();
+      updateMap([], null);
+    });
+    populateMakes();
+    updateModelsDropdown("");
+    const initialCategory = window.location.pathname === "/car" ? "car" : "home";
+    setCategory(initialCategory);
     updateFavoriteControl();
-    api("/api/config").then(async (data) => { populateCities(data.cities); applyConfig(data.config); await loadDistricts(data.config.district_id); ensureMap(); updateMap([], null); updateFavoriteControl(); }).catch((error) => { $("status").innerHTML = `<span class="error">${escapeHtml(error.message)}</span>`; });
+    api("/api/config").then(async (data) => {
+      populateCities(data.cities);
+      telegramConfig = data.telegram || { bot_token: "", chat_id: "", enabled: false };
+      $("settings_bot_token").value = telegramConfig.bot_token;
+      $("settings_chat_id").value = telegramConfig.chat_id;
+      $("settings_telegram_enabled").checked = telegramConfig.enabled;
+      let activeSlug = data.config.city_slug;
+      let activeSort = data.config.sort;
+      if (initialCategory === "car" && (!data.config.ui || data.config.ui.category !== "car")) {
+        activeSlug = "poland";
+        activeSort = "filter_float_price:asc";
+      }
+      applyConfig({ ...data.config, category: initialCategory, city_slug: activeSlug, sort: activeSort });
+      await loadDistricts(data.config.district_id);
+      ensureMap();
+      updateMap([], null);
+      updateFavoriteControl();
+    }).catch((error) => { $("status").innerHTML = `<span class="error">${escapeHtml(error.message)}</span>`; });
   </script>
 </body>
 </html>
